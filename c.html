@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合肥工业大学程艺小组演示——C题</title>
+    
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 100%;
+            height: calc(100vh - 20px);
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header Styles - Reduced height */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        header h3 {
+            font-size: 1em;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+        
+        /* Main Content Area - Expanded */
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animation Canvas - Larger */
+        .animation-canvas {
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            background: #fafafa;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Explanation Panel */
+        .explanation-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            border: 2px solid #e9ecef;
+            overflow-y: auto;
+        }
+        
+        .explanation-panel h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+        }
+        
+        .explanation-panel h3 {
+            color: #764ba2;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .explanation-panel p {
+            line-height: 1.8;
+            margin-bottom: 12px;
+            font-size: 1.05em;
+        }
+        
+        .explanation-panel pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        
+        /* Scrollbar for explanation panel */
+        .explanation-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .explanation-panel::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+        
+        .explanation-panel::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        .explanation-panel::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            padding: 15px 20px;
+            text-align: center;
+            flex-shrink: 0;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .control-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            font-weight: 600;
+        }
+        
+        .control-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .control-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .control-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+        
+        .prev-button {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+        }
+        
+        .prev-button:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(113, 128, 150, 0.6);
+        }
+        
+        /* Code Block Styling - With scrollbar */
+        .code-container {
+            background: #282c34;
+            border-radius: 10px;
+            overflow: auto;
+            max-height: 100%;
+        }
+        
+        .code-block {
+            color: #abb2bf;
+            padding: 25px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+            white-space: pre;
+            min-width: max-content;
+        }
+        
+        .code-block .keyword {
+            color: #c678dd;
+        }
+        
+        .code-block .string {
+            color: #98c379;
+        }
+        
+        .code-block .comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #61afef;
+        }
+        
+        .code-block .number {
+            color: #d19a66;
+        }
+        
+        /* Scrollbar styling */
+        .code-container::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        .code-container::-webkit-scrollbar-track {
+            background: #1e2127;
+        }
+        
+        .code-container::-webkit-scrollbar-thumb {
+            background: #4b5263;
+            border-radius: 5px;
+        }
+        
+        .code-container::-webkit-scrollbar-thumb:hover {
+            background: #5c6370;
+        }
+        
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        .fade-out {
+            animation: fadeOut 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+        
+        /* SVG Styling */
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .axis {
+            stroke: #333;
+            stroke-width: 2;
+        }
+        
+        .point {
+            fill: #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .point:hover {
+            fill: #764ba2;
+            r: 8;
+        }
+        
+        .line-segment {
+            stroke: #667eea;
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        .line-highlight {
+            stroke: #ffd700;
+            stroke-width: 3;
+            fill: none;
+        }
+        
+        .dotted-line {
+            stroke: #999;
+            stroke-width: 1.5;
+            stroke-dasharray: 5,5;
+            fill: none;
+        }
+        
+        .label-text {
+            font-size: 14px;
+            fill: #333;
+            font-weight: 600;
+        }
+        
+        .formula-text {
+            font-size: 12px;
+            fill: #555;
+        }
+        
+        .triangle-side {
+            stroke: #e74c3c;
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        /* KaTeX in SVG */
+        .katex-display {
+            margin: 0;
+        }
+        
+        .formula-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Problem description box */
+        .problem-box {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .problem-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .problem-box .sample {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>合肥工业大学程艺小组演示——C题</h1>
+            <h3>组员: 李昊 周骏浩 叶豪杰 姚睿</h3>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Animation Canvas -->
+            <div class="animation-canvas">
+                <svg id="canvas" viewBox="0 0 800 500">
+                    <!-- Animation elements will be added here dynamically -->
+                </svg>
+            </div>
+            
+            <!-- Explanation Panel -->
+            <div class="explanation-panel" id="explanation">
+                <div id="explanation-content"></div>
+            </div>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <button class="control-button prev-button" id="prevButton" disabled>上一步</button>
+            <button class="control-button" id="nextButton">下一步</button>
+        </div>
+    </div>
+    
+    <script>
+        // Global state
+        let currentStep = 0;
+        const totalSteps = 7;
+        
+        // SVG namespace
+        const svgNS = "http://www.w3.org/2000/svg";
+        const canvas = document.getElementById('canvas');
+        const explanationContent = document.getElementById('explanation-content');
+        const nextButton = document.getElementById('nextButton');
+        const prevButton = document.getElementById('prevButton');
+        
+        // Coordinate system parameters
+        const origin = { x: 400, y: 350 };
+        const scale = 80;
+        
+        // Wait for KaTeX to load
+        let katexReady = false;
+        
+        // Check if KaTeX is loaded
+        function waitForKaTeX() {
+            return new Promise((resolve) => {
+                if (window.renderMathInElement) {
+                    katexReady = true;
+                    resolve();
+                } else {
+                    setTimeout(() => {
+                        waitForKaTeX().then(resolve);
+                    }, 100);
+                }
+            });
+        }
+        
+        // Initialize
+        waitForKaTeX().then(() => {
+            nextButton.addEventListener('click', nextStep);
+            prevButton.addEventListener('click', prevStep);
+            renderAnimationStep(0);
+            updateButtonStates();
+        });
+        
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                renderAnimationStep(currentStep);
+                updateButtonStates();
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                renderAnimationStep(currentStep);
+                updateButtonStates();
+            }
+        }
+        
+        function updateButtonStates() {
+            // Update previous button
+            prevButton.disabled = currentStep === 0;
+            
+            // Update next button
+            if (currentStep >= totalSteps) {
+                nextButton.disabled = true;
+                nextButton.textContent = '演示完成';
+            } else {
+                nextButton.disabled = false;
+                nextButton.textContent = '下一步';
+            }
+        }
+        
+        function clearCanvas() {
+            canvas.innerHTML = '';
+        }
+        
+        function setExplanation(html) {
+            explanationContent.innerHTML = html;
+            // Render KaTeX
+            if (window.renderMathInElement && katexReady) {
+                renderMathInElement(explanationContent, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+        
+        function createText(x, y, text, className = 'label-text') {
+            const textEl = document.createElementNS(svgNS, 'text');
+            textEl.setAttribute('x', x);
+            textEl.setAttribute('y', y);
+            textEl.setAttribute('class', className);
+            textEl.setAttribute('text-anchor', 'middle');
+            textEl.textContent = text;
+            return textEl;
+        }
+        
+        function createKaTeXText(x, y, latex, fontSize = 20, width = 500) {
+            const foreignObject = document.createElementNS(svgNS, 'foreignObject');
+            foreignObject.setAttribute('x', x - width/2);
+            foreignObject.setAttribute('y', y - 40);
+            foreignObject.setAttribute('width', width);
+            foreignObject.setAttribute('height', '80');
+            
+            const div = document.createElement('div');
+            div.style.textAlign = 'center';
+            div.style.fontSize = fontSize + 'px';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.justifyContent = 'center';
+            div.style.height = '100%';
+            
+            if (window.katex && katexReady) {
+                try {
+                    div.innerHTML = katex.renderToString(latex, {
+                        displayMode: true,
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    div.textContent = latex;
+                }
+            } else {
+                div.textContent = latex;
+            }
+            
+            foreignObject.appendChild(div);
+            return foreignObject;
+        }
+        
+        function createCircle(x, y, r = 5, className = 'point') {
+            const circle = document.createElementNS(svgNS, 'circle');
+            circle.setAttribute('cx', x);
+            circle.setAttribute('cy', y);
+            circle.setAttribute('r', r);
+            circle.setAttribute('class', className);
+            return circle;
+        }
+        
+        function createLine(x1, y1, x2, y2, className = 'line-segment') {
+            const line = document.createElementNS(svgNS, 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('class', className);
+            return line;
+        }
+        
+        function drawAxes() {
+            // X-axis
+            const xAxis = createLine(50, origin.y, 750, origin.y, 'axis');
+            canvas.appendChild(xAxis);
+            
+            // Y-axis
+            const yAxis = createLine(origin.x, 50, origin.x, 450, 'axis');
+            canvas.appendChild(yAxis);
+            
+            // Arrows
+            const arrowSize = 10;
+            
+            // X-axis arrow
+            const xArrow1 = createLine(750, origin.y, 750 - arrowSize, origin.y - arrowSize/2, 'axis');
+            const xArrow2 = createLine(750, origin.y, 750 - arrowSize, origin.y + arrowSize/2, 'axis');
+            canvas.appendChild(xArrow1);
+            canvas.appendChild(xArrow2);
+            
+            // Y-axis arrow
+            const yArrow1 = createLine(origin.x, 50, origin.x - arrowSize/2, 50 + arrowSize, 'axis');
+            const yArrow2 = createLine(origin.x, 50, origin.x + arrowSize/2, 50 + arrowSize, 'axis');
+            canvas.appendChild(yArrow1);
+            canvas.appendChild(yArrow2);
+            
+            // Labels
+            const xLabel = createText(760, origin.y + 5, 'x');
+            const yLabel = createText(origin.x - 15, 40, 'y');
+            canvas.appendChild(xLabel);
+            canvas.appendChild(yLabel);
+        }
+        
+        function toCanvasCoords(x, y) {
+            return {
+                x: origin.x + x * scale,
+                y: origin.y - y * scale
+            };
+        }
+        
+        function animateElement(element, delay = 0) {
+            element.style.opacity = '0';
+            setTimeout(() => {
+                element.style.transition = 'opacity 0.8s ease-in';
+                element.style.opacity = '1';
+            }, delay);
+        }
+        
+        function renderAnimationStep(step) {
+            clearCanvas();
+            
+            switch(step) {
+                case 0:
+                    renderStep0();
+                    break;
+                case 1:
+                    renderStep1();
+                    break;
+                case 2:
+                    renderStep2();
+                    break;
+                case 3:
+                    renderStep3();
+                    break;
+                case 4:
+                    renderStep4();
+                    break;
+                case 5:
+                    renderStep5();
+                    break;
+                case 6:
+                    renderStep6();
+                    break;
+                case 7:
+                    renderStep7();
+                    break;
+            }
+        }
+        
+        function renderStep0() {
+            setExplanation(`
+                <h2>C 联合密码</h2>
+                <div class="problem-box">
+                    <p>环保部门在城市工业区设置了环境污染物检测和预警实验室，实验室会收集工业区附近的地表及地下水系统的样本并进行检测，同时保存过往的数据用于比对。因此实验室安装了一个特殊的门禁系统，每隔一段时间就会进行调整，避免工作人员不小心对外透露相关信息。</p>
+                    
+                    <p>这款门禁系统的密码是若干个公式，每次使用2个，然后按照要求求出指定的结果，小李今天拿到了其中 2 个，其中一个是 $(x^2+a)^{0.5}$，另一个是 $((b-x)^2+1)^{0.5}$。a和b的信息会显示在屏幕上，今天的要求是求两个公式和的最小值。</p>
+                    
+                    <h4>输入说明：</h4>
+                    <p>输入a、b，两个非负实数</p>
+                    
+                    <h4>输出说明：</h4>
+                    <p>输出表达式的最小值，精确到小数点后6位。</p>
+                    
+                    <h4>输入样例：</h4>
+                    <div class="sample">4.000  4.000</div>
+                    
+                    <h4>输出样例：</h4>
+                    <div class="sample">5.000000</div>
+                </div>
+                
+                <h3>问题抽象</h3>
+                <p>求函数 $f(x) = \\sqrt{x^2 + a} + \\sqrt{(b-x)^2 + 1}$ 的最小值。</p>
+                <p>其中 $a$ 和 $b$ 为给定的非负实数。</p>
+            `);
+            
+            // Use KaTeX for formula in canvas - larger width and display mode
+            const formula = createKaTeXText(400, 250, 
+                'f(x) = \\sqrt{x^2 + a} + \\sqrt{(b-x)^2 + 1}', 28, 600);
+            canvas.appendChild(formula);
+            animateElement(formula);
+        }
+        
+        function renderStep1() {
+            setExplanation(`
+                <h2>思路一: 微分法</h2>
+                <p>一个直接的想法是求导，并令导数 $f'(x) = 0$。但是，这个方程非常复杂，求解困难。这提示我们，可能存在更巧妙的方法。</p>
+            `);
+            
+            const formula1 = createKaTeXText(400, 180, 
+                'f(x) = \\sqrt{x^2 + a} + \\sqrt{(b-x)^2 + 1}', 20, 500);
+            canvas.appendChild(formula1);
+            
+            const formula2 = createKaTeXText(400, 300, 
+                "f'(x) = \\frac{x}{\\sqrt{x^2 + a}} - \\frac{b-x}{\\sqrt{(b-x)^2 + 1}}", 20, 500);
+            canvas.appendChild(formula2);
+            
+            animateElement(formula1);
+            animateElement(formula2, 500);
+        }
+        
+        function renderStep2() {
+            setExplanation(`
+                <h2>思路二: 几何转化</h2>
+                <p>我们观察公式的结构。第一部分 $\\sqrt{x^2 + a}$ 正是平面上点 $P(x, 0)$ 到点 $A(0, \\sqrt{a})$ 的距离。</p>
+            `);
+            
+            drawAxes();
+            
+            // Use a = 4 for visualization (sqrt(a) = 2)
+            const a = 4;
+            const sqrtA = 2;
+            const x = 2;
+            
+            // Point A at (0, sqrt(a))
+            const pointA = toCanvasCoords(0, sqrtA);
+            const circleA = createCircle(pointA.x, pointA.y);
+            canvas.appendChild(circleA);
+            
+            const labelA = createKaTeXText(pointA.x - 60, pointA.y - 10, 'A(0, \\sqrt{a})', 14, 150);
+            canvas.appendChild(labelA);
+            
+            // Point P at (x, 0)
+            const pointP = toCanvasCoords(x, 0);
+            const circleP = createCircle(pointP.x, pointP.y);
+            circleP.style.fill = '#e74c3c';
+            canvas.appendChild(circleP);
+            
+            const labelP = createText(pointP.x, pointP.y + 20, 'P(x, 0)');
+            canvas.appendChild(labelP);
+            
+            // Line segment PA
+            const linePA = createLine(pointP.x, pointP.y, pointA.x, pointA.y);
+            canvas.appendChild(linePA);
+            
+            const midPA = {
+                x: (pointP.x + pointA.x) / 2 - 100,
+                y: (pointP.y + pointA.y) / 2
+            };
+            const labelPA = createKaTeXText(midPA.x, midPA.y, '|PA| = \\sqrt{x^2 + a}', 13, 200);
+            canvas.appendChild(labelPA);
+            
+            animateElement(circleA, 200);
+            animateElement(labelA, 200);
+            animateElement(circleP, 400);
+            animateElement(labelP, 400);
+            animateElement(linePA, 600);
+            animateElement(labelPA, 800);
+        }
+        
+        function renderStep3() {
+            setExplanation(`
+                <h2>几何转化 (续)</h2>
+                <p>同样地，第二部分 $\\sqrt{(b-x)^2 + 1}$ 是点 $P(x, 0)$ 到点 $B(b, 1)$ 的距离。</p>
+                <p>因此，原问题转化为: <strong>在 x 轴上寻找一点 P，使得它到定点 A 和 B 的距离之和 $|PA| + |PB|$ 最小。</strong></p>
+            `);
+            
+            drawAxes();
+            
+            const a = 4;
+            const sqrtA = 2;
+            const b = 3;
+            const x = 2;
+            
+            // Point A
+            const pointA = toCanvasCoords(0, sqrtA);
+            const circleA = createCircle(pointA.x, pointA.y);
+            canvas.appendChild(circleA);
+            const labelA = createKaTeXText(pointA.x - 60, pointA.y - 10, 'A(0, \\sqrt{a})', 14, 150);
+            canvas.appendChild(labelA);
+            
+            // Point P
+            const pointP = toCanvasCoords(x, 0);
+            const circleP = createCircle(pointP.x, pointP.y);
+            circleP.style.fill = '#e74c3c';
+            canvas.appendChild(circleP);
+            const labelP = createText(pointP.x, pointP.y + 20, 'P(x, 0)');
+            canvas.appendChild(labelP);
+            
+            // Line PA
+            const linePA = createLine(pointP.x, pointP.y, pointA.x, pointA.y);
+            canvas.appendChild(linePA);
+            
+            // Point B
+            const pointB = toCanvasCoords(b, 1);
+            const circleB = createCircle(pointB.x, pointB.y);
+            circleB.style.fill = '#27ae60';
+            canvas.appendChild(circleB);
+            const labelB = createText(pointB.x + 50, pointB.y, 'B(b, 1)');
+            canvas.appendChild(labelB);
+            
+            // Line PB
+            const linePB = createLine(pointP.x, pointP.y, pointB.x, pointB.y);
+            canvas.appendChild(linePB);
+            
+            const midPB = {
+                x: (pointP.x + pointB.x) / 2 + 80,
+                y: (pointP.y + pointB.y) / 2
+            };
+            const labelPB = createKaTeXText(midPB.x, midPB.y, '|PB| = \\sqrt{(b-x)^2 + 1}', 13, 250);
+            canvas.appendChild(labelPB);
+            
+            animateElement(circleB, 200);
+            animateElement(labelB, 200);
+            animateElement(linePB, 400);
+            animateElement(labelPB, 600);
+        }
+        
+        function renderStep4() {
+            setExplanation(`
+                <h2>将军饮马问题</h2>
+                <p>这是一个经典的几何模型——<strong>将军饮马问题</strong>。</p>
+                <p>解决方法是: 作点 A 关于 x 轴的对称点 A'。由于对称性，我们有 $|PA| = |PA'|$。</p>
+                <p>因此，求 $|PA| + |PB|$ 的最小值就等价于求 $|PA'| + |PB|$ 的最小值。</p>
+            `);
+            
+            drawAxes();
+            
+            const a = 4;
+            const sqrtA = 2;
+            const b = 3;
+            const x = 2;
+            
+            // Point A
+            const pointA = toCanvasCoords(0, sqrtA);
+            const circleA = createCircle(pointA.x, pointA.y);
+            canvas.appendChild(circleA);
+            const labelA = createText(pointA.x - 40, pointA.y - 15, 'A');
+            canvas.appendChild(labelA);
+            
+            // Point P (animate it sliding)
+            const pointP = toCanvasCoords(x, 0);
+            const circleP = createCircle(pointP.x, pointP.y);
+            circleP.style.fill = '#e74c3c';
+            canvas.appendChild(circleP);
+            const labelP = createText(pointP.x, pointP.y + 20, 'P');
+            canvas.appendChild(labelP);
+            
+            // Point B
+            const pointB = toCanvasCoords(b, 1);
+            const circleB = createCircle(pointB.x, pointB.y);
+            circleB.style.fill = '#27ae60';
+            canvas.appendChild(circleB);
+            const labelB = createText(pointB.x + 30, pointB.y - 15, 'B');
+            canvas.appendChild(labelB);
+            
+            // Point A' (reflection)
+            const pointAPrime = toCanvasCoords(0, -sqrtA);
+            const circleAPrime = createCircle(pointAPrime.x, pointAPrime.y);
+            circleAPrime.style.fill = '#9b59b6';
+            canvas.appendChild(circleAPrime);
+            const labelAPrime = createText(pointAPrime.x - 40, pointAPrime.y + 20, "A'");
+            canvas.appendChild(labelAPrime);
+            
+            // Dotted line from A to A'
+            const reflectionLine = createLine(pointA.x, pointA.y, pointAPrime.x, pointAPrime.y, 'dotted-line');
+            canvas.appendChild(reflectionLine);
+            
+            // Lines
+            const linePA = createLine(pointP.x, pointP.y, pointA.x, pointA.y);
+            const linePB = createLine(pointP.x, pointP.y, pointB.x, pointB.y);
+            const linePAPrime = createLine(pointP.x, pointP.y, pointAPrime.x, pointAPrime.y);
+            linePAPrime.style.strokeDasharray = '3,3';
+            
+            canvas.appendChild(linePA);
+            canvas.appendChild(linePB);
+            canvas.appendChild(linePAPrime);
+            
+            animateElement(circleAPrime, 400);
+            animateElement(labelAPrime, 400);
+            animateElement(reflectionLine, 600);
+            animateElement(linePAPrime, 800);
+        }
+        
+        function renderStep5() {
+            setExplanation(`
+                <h2>最优解</h2>
+                <p>根据'两点之间，线段最短'的原理，当 A'、P、B 三点共线时，距离和 $|PA'| + |PB|$ 最小。</p>
+                <p>这个最小值就是线段 A'B 的长度。</p>
+            `);
+            
+            drawAxes();
+            
+            const a = 4;
+            const sqrtA = 2;
+            const b = 3;
+            
+            // Point A
+            const pointA = toCanvasCoords(0, sqrtA);
+            const circleA = createCircle(pointA.x, pointA.y);
+            canvas.appendChild(circleA);
+            const labelA = createText(pointA.x - 40, pointA.y - 15, 'A');
+            canvas.appendChild(labelA);
+            
+            // Point B
+            const pointB = toCanvasCoords(b, 1);
+            const circleB = createCircle(pointB.x, pointB.y);
+            circleB.style.fill = '#27ae60';
+            canvas.appendChild(circleB);
+            const labelB = createText(pointB.x + 30, pointB.y - 15, 'B');
+            canvas.appendChild(labelB);
+            
+            // Point A'
+            const pointAPrime = toCanvasCoords(0, -sqrtA);
+            const circleAPrime = createCircle(pointAPrime.x, pointAPrime.y);
+            circleAPrime.style.fill = '#9b59b6';
+            canvas.appendChild(circleAPrime);
+            const labelAPrime = createKaTeXText(pointAPrime.x - 80, pointAPrime.y + 5, "A'(0, -\\sqrt{a})", 14, 180);
+            canvas.appendChild(labelAPrime);
+            
+            // Optimal P (intersection with x-axis)
+            // Calculate intersection point
+            const slope = (pointB.y - pointAPrime.y) / (pointB.x - pointAPrime.x);
+            const intercept = pointAPrime.y - slope * pointAPrime.x;
+            const optimalX = -intercept / slope;
+            const pointPOpt = { x: optimalX, y: origin.y };
+            
+            const circlePOpt = createCircle(pointPOpt.x, pointPOpt.y, 6);
+            circlePOpt.style.fill = '#ffd700';
+            canvas.appendChild(circlePOpt);
+            const labelPOpt = createText(pointPOpt.x, pointPOpt.y + 25, 'P*');
+            canvas.appendChild(labelPOpt);
+            
+            // Highlighted line A'B
+            const lineAPrimeB = createLine(pointAPrime.x, pointAPrime.y, pointB.x, pointB.y, 'line-highlight');
+            canvas.appendChild(lineAPrimeB);
+            
+            animateElement(lineAPrimeB, 200);
+            animateElement(circlePOpt, 600);
+            animateElement(labelPOpt, 600);
+        }
+        
+        function renderStep6() {
+            setExplanation(`
+                <h2>最终计算</h2>
+                <p>我们使用两点间距离公式(或勾股定理)来计算 A'B 的长度。</p>
+                <p>A' 点坐标: $(0, -\\sqrt{a})$</p>
+                <p>B 点坐标: $(b, 1)$</p>
+                <p>最小距离 = $\\sqrt{(b-0)^2 + (1 - (-\\sqrt{a}))^2} = \\sqrt{b^2 + (1+\\sqrt{a})^2}$</p>
+            `);
+            
+            drawAxes();
+            
+            const a = 4;
+            const sqrtA = 2;
+            const b = 3;
+            
+            // Point A'
+            const pointAPrime = toCanvasCoords(0, -sqrtA);
+            const circleAPrime = createCircle(pointAPrime.x, pointAPrime.y);
+            circleAPrime.style.fill = '#9b59b6';
+            canvas.appendChild(circleAPrime);
+            const labelAPrime = createKaTeXText(pointAPrime.x - 130, pointAPrime.y - 5, "A'(0, -\\sqrt{a})", 14, 180);
+            canvas.appendChild(labelAPrime);
+            
+            // Point B
+            const pointB = toCanvasCoords(b, 1);
+            const circleB = createCircle(pointB.x, pointB.y);
+            circleB.style.fill = '#27ae60';
+            canvas.appendChild(circleB);
+            const labelB = createText(pointB.x + 60, pointB.y, 'B(b, 1)');
+            canvas.appendChild(labelB);
+            
+            // Triangle sides
+            // Horizontal side (from A' projection to B projection)
+            const horizLine = createLine(pointAPrime.x, pointB.y, pointB.x, pointB.y, 'triangle-side');
+            canvas.appendChild(horizLine);
+            const labelHoriz = createText((pointAPrime.x + pointB.x) / 2, pointB.y + 25, 'b');
+            labelHoriz.style.fill = '#e74c3c';
+            canvas.appendChild(labelHoriz);
+            
+            // Vertical side
+            const vertLine = createLine(pointAPrime.x, pointAPrime.y, pointAPrime.x, pointB.y, 'triangle-side');
+            canvas.appendChild(vertLine);
+            const labelVert = createKaTeXText(pointAPrime.x - 110, (pointAPrime.y + pointB.y) / 2 - 10, '1 + \\sqrt{a}', 14, 150);
+            canvas.appendChild(labelVert);
+            
+            // Hypotenuse
+            const hypotenuse = createLine(pointAPrime.x, pointAPrime.y, pointB.x, pointB.y, 'line-highlight');
+            canvas.appendChild(hypotenuse);
+            
+            animateElement(horizLine, 200);
+            animateElement(labelHoriz, 200);
+            animateElement(vertLine, 400);
+            animateElement(labelVert, 400);
+            animateElement(hypotenuse, 600);
+        }
+        
+        function renderStep7() {
+            setExplanation(`
+                <h2>代码实现</h2>
+                <p>在理解了问题的几何本质后，最终的代码实现变得异常简洁。</p>
+            `);
+            
+            const code = `<span class="keyword">#include</span> <span class="string">&lt;iostream&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;cmath&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;iomanip&gt;</span>
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="keyword">double</span> a, b;
+    
+    <span class="keyword">while</span> (std::cin >> a >> b) {
+        <span class="comment">// A' 坐标 (0, -sqrt(a))</span>
+        <span class="comment">// B 坐标 (b, 1)</span>
+        <span class="keyword">double</span> dx_sq = b * b;
+        <span class="keyword">double</span> dy = <span class="number">1</span> + std::<span class="function">sqrt</span>(a);
+        <span class="keyword">double</span> dy_sq = dy * dy;
+        
+        <span class="keyword">double</span> min_distance = std::<span class="function">sqrt</span>(dx_sq + dy_sq);
+        
+        std::cout << std::fixed 
+                  << std::<span class="function">setprecision</span>(<span class="number">6</span>) 
+                  << min_distance 
+                  << std::endl;
+    }
+    
+    <span class="keyword">return</span> <span class="number">0</span>;
+}`;
+            
+            const foreignObject = document.createElementNS(svgNS, 'foreignObject');
+            foreignObject.setAttribute('x', '50');
+            foreignObject.setAttribute('y', '50');
+            foreignObject.setAttribute('width', '700');
+            foreignObject.setAttribute('height', '400');
+            
+            const codeContainer = document.createElement('div');
+            codeContainer.className = 'code-container';
+            codeContainer.style.width = '100%';
+            codeContainer.style.height = '100%';
+            
+            const codeBlock = document.createElement('div');
+            codeBlock.className = 'code-block';
+            codeBlock.innerHTML = code;
+            
+            codeContainer.appendChild(codeBlock);
+            foreignObject.appendChild(codeContainer);
+            
+            canvas.appendChild(foreignObject);
+            animateElement(foreignObject);
+        }
+    </script>
+</body>
+</html>
