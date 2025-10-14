@@ -76,22 +76,46 @@
             }
         }
         
-        /* Animation Canvas - Larger */
+        /* Animation Canvas - Larger with scroll */
         .animation-canvas {
             border: 3px solid #e0e0e0;
             border-radius: 15px;
             background: #fafafa;
             position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            overflow: auto;
             min-height: 400px;
+        }
+        
+        /* Custom scrollbar for animation canvas */
+        .animation-canvas::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .animation-canvas::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+        
+        .animation-canvas::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
+        
+        .animation-canvas::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+        
+        .canvas-wrapper {
+            position: relative;
+            min-width: 800px;
+            min-height: 600px;
         }
         
         #canvas {
             width: 100%;
             height: 100%;
+            display: block;
         }
         
         /* Explanation Panel */
@@ -395,10 +419,12 @@
         <!-- Main Content -->
         <div class="main-content">
             <!-- Animation Canvas -->
-            <div class="animation-canvas">
-                <svg id="canvas" viewBox="0 0 800 500">
-                    <!-- Animation elements will be added here dynamically -->
-                </svg>
+            <div class="animation-canvas" id="animationCanvas">
+                <div class="canvas-wrapper">
+                    <svg id="canvas" viewBox="0 0 800 600">
+                        <!-- Animation elements will be added here dynamically -->
+                    </svg>
+                </div>
             </div>
             
             <!-- Explanation Panel -->
@@ -422,12 +448,13 @@
         // SVG namespace
         const svgNS = "http://www.w3.org/2000/svg";
         const canvas = document.getElementById('canvas');
+        const animationCanvas = document.getElementById('animationCanvas');
         const explanationContent = document.getElementById('explanation-content');
         const nextButton = document.getElementById('nextButton');
         const prevButton = document.getElementById('prevButton');
         
-        // Coordinate system parameters
-        const origin = { x: 400, y: 350 };
+        // Coordinate system parameters - adjusted for larger viewBox
+        const origin = { x: 400, y: 300 };
         const scale = 80;
         
         // Wait for KaTeX to load
@@ -565,12 +592,12 @@
         }
         
         function drawAxes() {
-            // X-axis
+            // X-axis - extended
             const xAxis = createLine(50, origin.y, 750, origin.y, 'axis');
             canvas.appendChild(xAxis);
             
-            // Y-axis
-            const yAxis = createLine(origin.x, 50, origin.x, 450, 'axis');
+            // Y-axis - extended to show negative values
+            const yAxis = createLine(origin.x, 30, origin.x, 570, 'axis');
             canvas.appendChild(yAxis);
             
             // Arrows
@@ -583,14 +610,14 @@
             canvas.appendChild(xArrow2);
             
             // Y-axis arrow
-            const yArrow1 = createLine(origin.x, 50, origin.x - arrowSize/2, 50 + arrowSize, 'axis');
-            const yArrow2 = createLine(origin.x, 50, origin.x + arrowSize/2, 50 + arrowSize, 'axis');
+            const yArrow1 = createLine(origin.x, 30, origin.x - arrowSize/2, 30 + arrowSize, 'axis');
+            const yArrow2 = createLine(origin.x, 30, origin.x + arrowSize/2, 30 + arrowSize, 'axis');
             canvas.appendChild(yArrow1);
             canvas.appendChild(yArrow2);
             
             // Labels
             const xLabel = createText(760, origin.y + 5, 'x');
-            const yLabel = createText(origin.x - 15, 40, 'y');
+            const yLabel = createText(origin.x - 15, 20, 'y');
             canvas.appendChild(xLabel);
             canvas.appendChild(yLabel);
         }
@@ -612,6 +639,7 @@
         
         function renderAnimationStep(step) {
             clearCanvas();
+            // 保持滚动位置不变，不再重置
             
             switch(step) {
                 case 0:
@@ -668,7 +696,7 @@
             `);
             
             // Use KaTeX for formula in canvas - larger width and display mode
-            const formula = createKaTeXText(400, 250, 
+            const formula = createKaTeXText(400, 300, 
                 'f(x) = \\sqrt{x^2 + a} + \\sqrt{(b-x)^2 + 1}', 28, 600);
             canvas.appendChild(formula);
             animateElement(formula);
@@ -680,11 +708,11 @@
                 <p>一个直接的想法是求导，并令导数 $f'(x) = 0$。但是，这个方程非常复杂，求解困难。这提示我们，可能存在更巧妙的方法。</p>
             `);
             
-            const formula1 = createKaTeXText(400, 180, 
+            const formula1 = createKaTeXText(400, 230, 
                 'f(x) = \\sqrt{x^2 + a} + \\sqrt{(b-x)^2 + 1}', 20, 500);
             canvas.appendChild(formula1);
             
-            const formula2 = createKaTeXText(400, 300, 
+            const formula2 = createKaTeXText(400, 350, 
                 "f'(x) = \\frac{x}{\\sqrt{x^2 + a}} - \\frac{b-x}{\\sqrt{(b-x)^2 + 1}}", 20, 500);
             canvas.appendChild(formula2);
             
@@ -821,7 +849,7 @@
             const labelA = createText(pointA.x - 40, pointA.y - 15, 'A');
             canvas.appendChild(labelA);
             
-            // Point P (animate it sliding)
+            // Point P
             const pointP = toCanvasCoords(x, 0);
             const circleP = createCircle(pointP.x, pointP.y);
             circleP.style.fill = '#e74c3c';
@@ -837,7 +865,7 @@
             const labelB = createText(pointB.x + 30, pointB.y - 15, 'B');
             canvas.appendChild(labelB);
             
-            // Point A' (reflection)
+            // Point A' (reflection) - now fully visible
             const pointAPrime = toCanvasCoords(0, -sqrtA);
             const circleAPrime = createCircle(pointAPrime.x, pointAPrime.y);
             circleAPrime.style.fill = '#9b59b6';
@@ -902,7 +930,6 @@
             canvas.appendChild(labelAPrime);
             
             // Optimal P (intersection with x-axis)
-            // Calculate intersection point
             const slope = (pointB.y - pointAPrime.y) / (pointB.x - pointAPrime.x);
             const intercept = pointAPrime.y - slope * pointAPrime.x;
             const optimalX = -intercept / slope;
@@ -955,7 +982,7 @@
             canvas.appendChild(labelB);
             
             // Triangle sides
-            // Horizontal side (from A' projection to B projection)
+            // Horizontal side
             const horizLine = createLine(pointAPrime.x, pointB.y, pointB.x, pointB.y, 'triangle-side');
             canvas.appendChild(horizLine);
             const labelHoriz = createText((pointAPrime.x + pointB.x) / 2, pointB.y + 25, 'b');
@@ -1014,7 +1041,7 @@
             foreignObject.setAttribute('x', '50');
             foreignObject.setAttribute('y', '50');
             foreignObject.setAttribute('width', '700');
-            foreignObject.setAttribute('height', '400');
+            foreignObject.setAttribute('height', '500');
             
             const codeContainer = document.createElement('div');
             codeContainer.className = 'code-container';
