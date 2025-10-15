@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合肥工业大学程序设计艺术小组展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+        }
+        
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+        
+        .header-text {
+            flex: 1;
+        }
+        
+        header h1 {
+            font-size: 2.2em;
+            margin-bottom: 12px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        header h3 {
+            font-size: 1.1em;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 50px 40px;
+        }
+        
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .intro h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        
+        .intro p {
+            color: #64748b;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        /* Problem Grid */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .problem-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .problem-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .problem-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        
+        .problem-title {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .problem-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2em;
+        }
+        
+        .problem-desc {
+            color: #64748b;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        
+        .arrow {
+            display: inline-block;
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .problem-card:hover .arrow {
+            transform: translateX(5px);
+        }
+        
+        /* Footer */
+        footer {
+            background: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            color: #64748b;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+                padding: 30px 20px;
+            }
+            
+            header h1 {
+                font-size: 1.6em;
+            }
+            
+            header h3 {
+                font-size: 0.95em;
+            }
+            
+            .main-content {
+                padding: 30px 20px;
+            }
+            
+            .problem-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .problem-card {
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+        
+        .problem-card:nth-child(1) { animation-delay: 0.1s; }
+        .problem-card:nth-child(2) { animation-delay: 0.2s; }
+        .problem-card:nth-child(3) { animation-delay: 0.3s; }
+        .problem-card:nth-child(4) { animation-delay: 0.4s; }
+        .problem-card:nth-child(5) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <img src="https://m.acnul.top/assets/logo-83e72bd5.png" alt="Logo">
+            </div>
+            <div class="header-text">
+                <h1>合肥工业大学程序设计艺术小组展示</h1>
+                <h3>组员：李昊 周骏浩 叶豪杰 姚睿</h3>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="intro">
+                <h2>演示题目索引</h2>
+                <p>点击下方卡片查看各题的可视化演示</p>
+            </div>
+            
+            <div class="problem-grid">
+                <a href="./c.html" class="problem-card">
+                    <div class="problem-title">
+                        <span class="problem-icon">C</span>
+                        C题
+                    </div>
+                    <div class="problem-desc">
+                        联合密码 - 通过几何转化与将军饮马问题，求解函数最小值
+                        <span class="arrow">→</span>
+                    </div>
+                </a>
+                
+                <a href="./e.html" class="problem-card">
+                    <div class="problem-title">
+                        <span class="problem-icon">E</span>
+                        E题
+                    </div>
+                    <div class="problem-desc">
+                        城市规划 - 状态抽象与BFS算法，求解路口独特度问题
+                        <span class="arrow">→</span>
+                    </div>
+                </a>
+                
+                <a href="./f.html" class="problem-card">
+                    <div class="problem-title">
+                        <span class="problem-icon">F</span>
+                        F题
+                    </div>
+                    <div class="problem-desc">
+                        题目演示 - 精彩的算法可视化展示
+                        <span class="arrow">→</span>
+                    </div>
+                </a>
+                
+                <a href="./g.html" class="problem-card">
+                    <div class="problem-title">
+                        <span class="problem-icon">G</span>
+                        G题
+                    </div>
+                    <div class="problem-desc">
+                        题目演示 - 深入浅出的算法讲解
+                        <span class="arrow">→</span>
+                    </div>
+                </a>
+                
+                <a href="./h.html" class="problem-card">
+                    <div class="problem-title">
+                        <span class="problem-icon">H</span>
+                        H题
+                    </div>
+                    <div class="problem-desc">
+                        题目演示 - 生动形象的问题解析
+                        <span class="arrow">→</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer>
+            <p>© 2025 合肥工业大学程序设计艺术小组 · 精心制作</p>
+        </footer>
+    </div>
+</body>
+</html>
