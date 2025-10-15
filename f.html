@@ -383,25 +383,66 @@
         }
         
         /* Code Block */
-        .code-box {
-            background: #0b1020;
-            color: #cbd5e1;
+        .code-container {
+            background: #282c34;
             border-radius: 10px;
             overflow: auto;
-            padding: 20px;
-            font-family: Consolas, Monaco, "Courier New", monospace;
-            line-height: 1.6;
-            white-space: pre;
-            font-size: 14px;
             max-height: 100%;
+            width: 100%;
         }
         
-        .code-box .kw { color: #c678dd; }
-        .code-box .ty { color: #e5c07b; }
-        .code-box .fn { color: #61afef; }
-        .code-box .num { color: #d19a66; }
-        .code-box .cm { color: #636e7b; font-style: italic; }
-        .code-box .str { color: #98c379; }
+        .code-container::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        .code-container::-webkit-scrollbar-track {
+            background: #1e2127;
+        }
+        
+        .code-container::-webkit-scrollbar-thumb {
+            background: #4b5263;
+            border-radius: 5px;
+        }
+        
+        .code-container::-webkit-scrollbar-thumb:hover {
+            background: #5c6370;
+        }
+        
+        .code-block {
+            color: #abb2bf;
+            padding: 25px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+            white-space: pre;
+            min-width: max-content;
+        }
+        
+        .code-block .keyword {
+            color: #c678dd;
+        }
+        
+        .code-block .string {
+            color: #98c379;
+        }
+        
+        .code-block .comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #61afef;
+        }
+        
+        .code-block .number {
+            color: #d19a66;
+        }
+        
+        .code-block .type {
+            color: #e5c07b;
+        }
         
         /* Animation */
         .fade-in {
@@ -697,7 +738,7 @@
                 <h2>场景0: 仓库网络问题</h2>
                 <div class="problem-box">
                     <h4>问题描述：</h4>
-                    <p>在一个树状的仓库网络中，每个仓库存储一种材��，价值为 $v_i$。</p>
+                    <p>在一个树状的仓库网络中，每个仓库存储一种材料，价值为 $v_i$。</p>
                     <p>我们需要选择若干条道路（边）进行配对，使得：</p>
                     <ul>
                         <li>每个仓库最多被一条道路使用</li>
@@ -959,7 +1000,7 @@
                 <p>尝试与节点2配对：$3 \\times 5 + 0 + \\max(0, 16) = 15 + 16 = 31$</p>
                 <p>尝试与节点3配对：$3 \\times 4 + 0 + \\max(0, 30) = 12 + 30 = 42$</p>
                 <p>$dp[1][1] = \\max(31, 42) = 42$</p>
-                <p><strong>最终答案：</strong>$\max(dp[1][0], dp[1][1]) = \max(46, 42) = 46$</p>
+                <p><strong>最终答案：</strong>$\\max(dp[1][0], dp[1][1]) = \\max(46, 42) = 46$</p>
             `);
             
             drawTree({ rootNode: 1, showArrows: true, highlightNodes: [1] });
@@ -1017,68 +1058,113 @@
             });
         }
         
-        function renderStep10() {
-            setExplanation(`
-                <h2>场景10: 算法实现</h2>
-                <p>该算法使用深度优先搜索（DFS）自底向上计算DP值。</p>
-                <p><strong>时间复杂度：</strong>$O(N^2)$，其中 $N$ 是节点数量。</p>
-                <p><strong>空间复杂度：</strong>$O(N)$。</p>
-            `);
-            
-            const codeHTML = `
-<div class="code-box">
-<span class="cm">// 树形DP求解最大权重匹配</span>
-<span class="ty">void</span> <span class="fn">dfs</span>(<span class="ty">int</span> u, <span class="ty">int</span> parent) {
-    dp[u][<span class="num">0</span>] = <span class="num">0</span>;
-    dp[u][<span class="num">1</span>] = <span class="num">0</span>;
+function renderStep10() {
+    setExplanation(`
+        <h2>场景10: 算法实现</h2>
+        <p>该算法使用深度优先搜索（DFS）自底向上计算DP值。</p>
+        <p><strong>时间复杂度：</strong>$O(N^2)$，其中 $N$ 是节点数量。</p>
+        <p><strong>空间复杂度：</strong>$O(N)$。</p>
+    `);
     
-    <span class="cm">// 遍历所有子节点</span>
-    <span class="kw">for</span> (<span class="ty">int</span> v : children[u]) {
-        <span class="kw">if</span> (v == parent) <span class="kw">continue</span>;
-        
-        <span class="fn">dfs</span>(v, u);  <span class="cm">// 递归计算子节点</span>
-        
-        <span class="cm">// dp[u][0]: u不配对</span>
-        dp[u][<span class="num">0</span>] += max(dp[v][<span class="num">0</span>], dp[v][<span class="num">1</span>]);
+    // 清空画布，只保留 defs
+    const defsElement = canvas.querySelector('defs');
+    canvas.innerHTML = '';
+    if (defsElement) {
+        canvas.appendChild(defsElement);
     }
     
-    <span class="cm">// dp[u][1]: u与某个子节点配对</span>
-    <span class="kw">for</span> (<span class="ty">int</span> v : children[u]) {
-        <span class="kw">if</span> (v == parent) <span class="kw">continue</span>;
+    // **关键修复：调整 SVG viewBox 以适应代码内容**
+    canvas.setAttribute('viewBox', '0 0 800 600');
+    
+    const foreignObject = createSVGElement('foreignObject', {
+        x: 10,
+        y: 10,
+        width: 780,
+        height: 580
+    });
+    
+    const container = document.createElement('div');
+    container.className = 'code-container fade-in';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.overflow = 'auto';
+    
+    const codeBlock = document.createElement('pre');
+    codeBlock.className = 'code-block';
+    codeBlock.innerHTML = `<span class="comment">// 树形DP求解最大权重匹配</span>
+<span class="type">void</span> <span class="function">dfs</span>(<span class="type">int</span> u, <span class="type">int</span> p) {
+    <span class="comment">// 初始化当前节点的dp值</span>
+    dp[u][<span class="number">0</span>] = <span class="number">0</span>;
+    dp[u][<span class="number">1</span>] = <span class="number">0</span>;
+
+    <span class="comment">// 1. 递归处理所有子节点</span>
+    <span class="keyword">for</span> (<span class="type">int</span> v : adj[u]) {
+        <span class="keyword">if</span> (v == p) { <span class="comment">// 避免走回头路</span>
+            <span class="keyword">continue</span>;
+        }
+        <span class="function">dfs</span>(v, u);
+    }
+
+    <span class="comment">// 2. 计算 dp[u][0] (u不与其子节点匹配)</span>
+    <span class="type">long long</span> sum_of_children_max_dp = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="type">int</span> v : adj[u]) {
+        <span class="keyword">if</span> (v == p) {
+            <span class="keyword">continue</span>;
+        }
+        sum_of_children_max_dp += <span class="function">max</span>(dp[v][<span class="number">0</span>], dp[v][<span class="number">1</span>]);
+    }
+    dp[u][<span class="number">0</span>] = sum_of_children_max_dp;
+
+    <span class="comment">// 3. 计算 dp[u][1] (u与其某个子节点匹配)</span>
+    <span class="keyword">for</span> (<span class="type">int</span> v : adj[u]) {
+        <span class="keyword">if</span> (v == p) {
+            <span class="keyword">continue</span>;
+        }
+        <span class="comment">// 计算如果 u 与 v 匹配时的总和</span>
+        <span class="type">long long</span> current_match_value = weights[u] * weights[v] 
+                            + dp[v][<span class="number">0</span>] 
+                            + (sum_of_children_max_dp - <span class="function">max</span>(dp[v][<span class="number">0</span>], dp[v][<span class="number">1</span>]));
         
-        <span class="cm">// 尝试与子节点v配对的收益</span>
-        <span class="ty">long long</span> gain = value[u] * value[v] + dp[v][<span class="num">0</span>];
-        
-        <span class="cm">// 其他子节点取最优</span>
-        <span class="ty">long long</span> others = dp[u][<span class="num">0</span>] - max(dp[v][<span class="num">0</span>], dp[v][<span class="num">1</span>]);
-        
-        dp[u][<span class="num">1</span>] = max(dp[u][<span class="num">1</span>], gain + others);
+        <span class="comment">// 更新 dp[u][1] 为所有可能匹配中的最大值</span>
+        dp[u][<span class="number">1</span>] = <span class="function">max</span>(dp[u][<span class="number">1</span>], current_match_value);
     }
 }
 
-<span class="cm">// 主函数</span>
-<span class="ty">long long</span> <span class="fn">solve</span>() {
-    <span class="fn">dfs</span>(<span class="num">1</span>, <span class="num">-1</span>);  <span class="cm">// 从根节点1开始DFS</span>
-    <span class="kw">return</span> max(dp[<span class="num">1</span>][<span class="num">0</span>], dp[<span class="num">1</span>][<span class="num">1</span>]);
+<span class="type">int</span> <span class="function">main</span>() {
+    <span class="type">int</span> n;
+    cin >> n;
+
+    <span class="comment">// 初始化数据结构</span>
+    adj.<span class="function">resize</span>(n + <span class="number">1</span>);
+    weights.<span class="function">resize</span>(n + <span class="number">1</span>);
+    dp.<span class="function">resize</span>(n + <span class="number">1</span>, <span class="function">vector</span>&lt;<span class="type">long long</span>&gt;(<span class="number">2</span>, <span class="number">0</span>));
+
+    <span class="comment">// 读取 n-1 条道路</span>
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n - <span class="number">1</span>; ++i) {
+        <span class="type">int</span> u, v;
+        cin >> u >> v;
+        adj[u].<span class="function">push_back</span>(v);
+        adj[v].<span class="function">push_back</span>(u);
+    }
+
+    <span class="comment">// 读取 n 个仓库的吸光能力</span>
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt;= n; ++i) {
+        cin >> weights[i];
+    }
+
+    <span class="comment">// 从节点1开始DFS</span>
+    <span class="function">dfs</span>(<span class="number">1</span>, <span class="number">0</span>);
+
+    <span class="comment">// 最终答案是根节点两种状态下的最大值</span>
+    cout &lt;&lt; <span class="function">max</span>(dp[<span class="number">1</span>][<span class="number">0</span>], dp[<span class="number">1</span>][<span class="number">1</span>]) &lt;&lt; endl;
+
+    <span class="keyword">return</span> <span class="number">0</span>;
+}`;
+    
+    container.appendChild(codeBlock);
+    foreignObject.appendChild(container);
+    canvas.appendChild(foreignObject);
 }
-</div>`;
-            
-            canvas.innerHTML = canvas.querySelector('defs').outerHTML;
-            
-            const foreignObject = createSVGElement('foreignObject', {
-                x: 20,
-                y: 20,
-                width: 760,
-                height: 560
-            });
-            
-            const div = document.createElement('div');
-            div.className = 'fade-in';
-            div.innerHTML = codeHTML;
-            
-            foreignObject.appendChild(div);
-            canvas.appendChild(foreignObject);
-        }
     </script>
 </body>
 </html>
