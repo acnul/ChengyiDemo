@@ -2,121 +2,173 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>合肥工业大学程艺小组演示——E题</title>
 
-  <!-- KaTeX (optional) -->
+  <!-- KaTeX (可选) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
   <style>
+    :root{
+      --gap: 16px;
+      --panel-radius: 12px;
+      --brand-1: #667eea;
+      --brand-2: #764ba2;
+      --text-1: #334155;
+      --muted-1: #e9ecef;
+    }
     *{margin:0;padding:0;box-sizing:border-box}
+    html, body { height: 100%; }
     body{
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-      min-height:100vh; padding:10px; color:#333; overflow:hidden;
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#333;
+      padding: 10px;
+      overflow: hidden;
     }
     .container{
-      max-width:100%; height:calc(100vh - 20px);
-      background:#fff; border-radius:15px; box-shadow:0 20px 60px rgba(0,0,0,.3);
-      overflow:hidden; display:flex; flex-direction:column;
+      height: calc(100vh - 20px);
+      background:#fff;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      display:flex;
+      flex-direction:column;
+      overflow: hidden;
     }
     header{
-      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-      color:#fff; text-align:center; padding:16px 20px; flex-shrink:0;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#fff;
+      text-align:center;
+      flex-shrink:0;
     }
-    header h1{ font-size:1.9em; margin-bottom:6px; text-shadow:2px 2px 4px rgba(0,0,0,.2) }
-    header h3{ font-size:.95em; font-weight:300; opacity:.95 }
+    header h1{ font-size: clamp(18px, 2.2vw, 28px); margin-bottom:6px; text-shadow:2px 2px 4px rgba(0,0,0,.2) }
+    header h3{ font-size: clamp(12px, 1.1vw, 16px); font-weight:300; opacity:.95 }
 
-    /* 主体改为左右布局：动画在左，讲解在右（讲解稍窄） */
+    /* 主体：左右布局（左动画，右讲解），右侧略窄，自适应 */
     .main{
-      flex:1; display:grid; grid-template-columns: 2fr 1fr; gap:16px; padding:16px; overflow:hidden;
+      flex:1;
+      display:grid;
+      grid-template-columns: minmax(520px, 2fr) minmax(320px, 1fr);
+      gap: var(--gap);
+      padding: var(--gap);
+      overflow: hidden;
     }
-    @media (max-width:1100px){
+    @media (max-width: 1024px){
       .main{ grid-template-columns: 1fr; }
     }
+
+    /* 左侧动画舞台：固定位置，所有动画同一位置的不同图层显隐 */
     .stage{
-      border:3px solid #e0e0e0; border-radius:12px; background:#fafafa;
-      position:relative; overflow:hidden; min-height:520px;
+      border: 3px solid #e0e0e0;
+      border-radius: var(--panel-radius);
+      background:#fafafa;
+      position: relative;
+      overflow: hidden;
+      min-height: clamp(440px, 60vh, 820px);
     }
     .stage .wrap{ position:relative; width:100%; height:100%; }
     svg{ width:100%; height:100%; display:block; }
 
+    /* 右侧讲解栏（略窄） */
     .info{
-      background:#f8f9fa; border-radius:12px; padding:18px; border:2px solid #e9ecef; overflow:auto;
+      background:#f8f9fa;
+      border-radius: var(--panel-radius);
+      border: 2px solid var(--muted-1);
+      padding: clamp(12px, 1.8vw, 18px);
+      overflow: auto;
+      min-height: 240px;
     }
-    .info h2{ color:#667eea; margin-bottom:10px; font-size:1.2em }
-    .info p{ line-height:1.8; font-size:1.02em; margin-bottom:8px }
-    .info code{ background:#eef2ff; padding:1px 6px; border-radius:4px; color:#7c3aed }
+    .info h2{ color: var(--brand-1); margin-bottom: 10px; font-size: clamp(16px, 1.6vw, 22px) }
+    .info p{ line-height: 1.8; font-size: clamp(13px, 1.1vw, 16px); margin-bottom: 8px }
+    .info code{ background:#eef2ff; padding:2px 6px; border-radius:4px; color:#7c3aed }
+    .problem-box{
+      border: 2px solid var(--brand-1);
+      border-radius: 10px;
+      background: #fff;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: clamp(12px, 1vw, 15px);
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
 
     .controls{
-      padding:12px 16px; background:#f8f9fa; display:flex; justify-content:center; gap:16px; flex-shrink:0;
+      padding: 10px 14px;
+      background:#f8f9fa;
+      display:flex; justify-content:center; gap: 14px;
+      flex-shrink:0;
     }
     .btn{
-      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-      color:#fff; border:none; padding:12px 32px; font-size:1.05em;
-      border-radius:50px; cursor:pointer; transition:all .25s ease;
-      box-shadow:0 4px 14px rgba(102,126,234,.4); font-weight:600;
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#fff; border:none;
+      padding: 10px 28px;
+      font-size: clamp(13px,1.1vw,16px);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all .22s ease;
+      box-shadow: 0 4px 14px rgba(102,126,234,.4);
+      font-weight: 600;
     }
-    .btn:hover:not(:disabled){ transform:translateY(-1px); box-shadow:0 6px 18px rgba(102,126,234,.55) }
-    .btn:disabled{ background:#cbd5e1; cursor:not-allowed; box-shadow:none; opacity:.8 }
-    .btn.prev{ background: linear-gradient(135deg,#718096 0%,#4a5568 100%) }
+    .btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 6px 18px rgba(102,126,234,.55); }
+    .btn:disabled{ background:#cbd5e1; cursor:not-allowed; box-shadow:none; opacity:.85; }
+    .btn.prev{ background: linear-gradient(135deg, #718096 0%, #4a5568 100%) }
 
-    /* 城市网格节点与边 */
-    .node{ transition:all .25s ease }
-    .node circle{ stroke-width:2 }
-    .node.type-0 circle{ fill:#3498db; stroke:#2980b9 }
-    .node.type-1 circle{ fill:#e67e22; stroke:#d35400 }
+    /* 城市网格图样式 */
+    .node{ transition: all .25s ease }
+    .node circle{ stroke-width: 2 }
+    .node.type-0 circle{ fill: #3498db; stroke: #2980b9 }
+    .node.type-1 circle{ fill: #e67e22; stroke: #d35400 }
     .node.highlighted circle{ stroke:#2ecc71; stroke-width:4; filter: drop-shadow(0 0 8px #2ecc71) }
-    .node.pulsing circle{ animation:pulse 1.5s ease-in-out infinite }
-    @keyframes pulse{ 0%,100%{stroke-width:4;filter:drop-shadow(0 0 8px #2ecc71)} 50%{stroke-width:6;filter:drop-shadow(0 0 14px #2ecc71)} }
-    .node text{ fill:#fff; font-size:14px; font-weight:700; text-anchor:middle; dominant-baseline:middle; pointer-events:none }
+    .node.pulsing circle{ animation: pulse 1.5s ease-in-out infinite }
+    @keyframes pulse{ 0%,100%{ stroke-width:4; filter: drop-shadow(0 0 8px #2ecc71) } 50%{ stroke-width:6; filter: drop-shadow(0 0 14px #2ecc71) } }
+    .node text{ fill: #fff; font-size: 14px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; pointer-events:none }
 
-    .edge{ transition:all .2s ease }
+    .edge{ transition: all .2s ease }
     .edge.x{ stroke:#e74c3c; stroke-width:4 }
     .edge.y{ stroke:#3498db; stroke-width:4 }
     .edge.highlighted{ stroke-width:6; filter: drop-shadow(0 0 4px currentColor) }
 
-    .axis-label{ font-size:16px; font-weight:700; fill:#667085 }
+    .axis-label{ font-size: clamp(12px, 1vw, 16px); font-weight: 700; fill:#667085 }
 
-    /* 拓扑状态图（紧凑、居中、无环形） */
+    /* 状态拓扑图（紧凑、分层、非环形） */
     .state-edge{ stroke-width:4; opacity:.9 }
     .state-edge.x{ stroke:#e74c3c }
     .state-edge.y{ stroke:#3498db }
-    .state-edge.dim{ opacity:.25 }
     .state-edge.highlighted{ stroke-width:6; filter: drop-shadow(0 0 6px currentColor) }
 
-    .state-node circle{ fill:#fff; stroke:#cbd5e0; stroke-width:2; transition:all .25s ease }
+    .state-node circle{ fill:#fff; stroke:#cbd5e0; stroke-width:2; transition: all .25s ease }
     .state-node.visited circle{ fill:#e3f2fd; stroke:#3498db }
     .state-node.current circle{ stroke:#2ecc71; stroke-width:4; filter: drop-shadow(0 0 8px #2ecc71) }
     .state-node.target circle{ fill:#ffd700; stroke:#f39c12; stroke-width:4 }
     .state-node.path circle{ fill:#fffbcc; stroke:#facc15; stroke-width:3 }
-    .state-node text{ font-size:12px; fill:#334155; font-weight:700; text-anchor:middle; dominant-baseline:middle; pointer-events:none }
+    .state-node text{ font-size: clamp(10px, .9vw, 12px); fill:#334155; font-weight: 700; text-anchor: middle; dominant-baseline: middle; pointer-events:none }
 
-    /* 状态标签 */
-    .state-label{ font-size:22px; font-weight:800; fill:#4f46e5 }
+    .state-label{ font-size: clamp(16px, 1.8vw, 24px); font-weight: 800; fill:#4f46e5; }
 
-    /* 队列 */
+    /* 队列可视化 */
     .queue-fo .q{
-      background:#fff; border:3px solid #667eea; border-radius:10px; padding:10px 12px;
-      box-shadow:0 4px 12px rgba(0,0,0,.15); display:inline-flex; flex-direction:column; gap:8px;
+      background:#fff; border:3px solid var(--brand-1); border-radius:10px; padding: 10px 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+      display:inline-flex; flex-direction: column; gap:8px;
     }
-    .queue-fo .t{ font-weight:800; color:#667eea; text-align:center }
+    .queue-fo .t{ font-weight: 800; color: var(--brand-1); text-align:center }
     .queue-fo .items{ display:flex; gap:8px; flex-wrap:wrap }
     .queue-fo .it{ background:#e3f2fd; border:2px solid #3498db; border-radius:6px; padding:6px 8px; font-size:13px; font-weight:700; color:#1f2937 }
 
     /* 代码显示 */
-    .code-wrap{ position:absolute; inset:0; padding:16px; }
+    .code-wrap{ position:absolute; inset: 0; padding: 12px; }
     .code-box{
-      width:100%; height:100%; background:#0b1020; color:#cbd5e1; border-radius:10px; overflow:auto;
-      padding:18px; font-family:Consolas, Monaco, "Courier New", monospace; line-height:1.6; white-space:pre; font-size:13.5px;
+      width:100%; height:100%; background:#0b1020; color:#cbd5e1; border-radius: 10px; overflow:auto;
+      padding: 18px; font-family: Consolas, Monaco, "Courier New", monospace; line-height:1.6; white-space:pre; font-size: 13.5px;
     }
     .kw{ color:#c678dd } .ty{ color:#e5c07b } .fn{ color:#61afef } .num{ color:#d19a66 } .cm{ color:#636e7b; font-style:italic }
 
-    /* 简单入场 */
-    .fade-in{ animation:fadeIn .5s ease-out }
-    @keyframes fadeIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    /* 入场 */
+    .fade-in{ animation: fadeIn .45s ease-out }
+    @keyframes fadeIn{ from{ opacity:0; transform: translateY(8px) } to{ opacity:1; transform:none } }
   </style>
 </head>
 <body>
@@ -127,11 +179,11 @@
     </header>
 
     <div class="main">
-      <!-- 左：动画舞台（放大，所有动画同一位置，按图层显示/隐藏） -->
+      <!-- 左：动画舞台（所有动画同一位置，按图层显示/隐藏） -->
       <div class="stage" id="stage">
         <div class="wrap">
           <svg id="canvas" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
-            <!-- 图层：一次性创建，按场景显示/隐藏 -->
+            <!-- 所有图层 -->
             <g id="layer-city"></g>
             <g id="layer-state-label"></g>
             <g id="layer-topo"></g>
@@ -141,7 +193,7 @@
         </div>
       </div>
 
-      <!-- 右：讲解栏 -->
+      <!-- 右：讲解 -->
       <div class="info">
         <div id="info-content"></div>
       </div>
@@ -154,29 +206,26 @@
   </div>
 
   <script>
-    // 全局状态
-    let scene = 0;              // 0..8
+    // 全局参数与状态
+    let scene = 0;                 // 0..8
     const lastScene = 8;
 
-    // 4x4 放大网格（示意更丰富）
-    const rows = 4, cols = 4;
-    const total = rows * cols;
+    // 放大 4x4 城市网格
+    const rows = 4, cols = 4, N = rows * cols;
 
-    // 放大尺寸，中心同位
-    const CELL = 120;                 // 单元格边长
+    // 尺寸与居中
+    const CELL = 120;
     const GRID_W = cols * CELL;       // 480
     const GRID_H = rows * CELL;       // 480
     const CENTER_X = 600, CENTER_Y = 350;  // 画板中心
     const OFFSET_X = CENTER_X - GRID_W/2;  // 360
     const OFFSET_Y = CENTER_Y - GRID_H/2;  // 110
 
-    // 起点（保证起点同类，若干步可达异类状态）
-    const A0 = 0; // (r=0,c=0)
-    const B0 = 5; // (r=1,c=1)
+    // 示例起点
+    const A0 = 0;  // (0,0)
+    const B0 = 5;  // (1,1)
 
-    // 类型设计（确保存在2步解，例如 (2,7) 异类）
-    // 索引: 0..15
-    // 行0: 0,1,2,3; 行1: 4,5,6,7; 行2: 8,9,10,11; 行3: 12,13,14,15
+    // 路口类型（0/1）
     const type = [
       0,1,1,0,
       1,0,1,0,
@@ -184,71 +233,90 @@
       1,0,1,0
     ];
 
-    // 同步移动（按行右移、按列下移，均环绕）
-    const xTo = new Array(total);
-    const yTo = new Array(total);
+    // 同步移动映射（环绕）
+    const xTo = Array(N), yTo = Array(N);
     for (let r=0;r<rows;r++){
       for (let c=0;c<cols;c++){
         const id = r*cols + c;
-        const nx = r*cols + ((c+1)%cols);
-        const ny = ((r+1)%rows)*cols + c;
-        xTo[id] = nx;
-        yTo[id] = ny;
+        xTo[id] = r*cols + ((c+1) % cols);
+        yTo[id] = ((r+1) % rows) * cols + c;
       }
     }
 
-    // KaTeX
-    let katexOK = false;
-    function waitKatex(){
-      return new Promise(res=>{
-        if (window.renderMathInElement){ katexOK = true; res(); }
-        else setTimeout(()=>waitKatex().then(res),100);
-      });
-    }
+    // 当前 A/B 位置
+    let posA = A0, posB = B0;
 
-    // DOM
-    const canvas = document.getElementById('canvas');
+    // DOM 引用
+    const svg = document.getElementById('canvas');
     const layerCity = document.getElementById('layer-city');
     const layerStateLabel = document.getElementById('layer-state-label');
     const layerTopo = document.getElementById('layer-topo');
     const layerQueue = document.getElementById('layer-queue');
     const layerCode = document.getElementById('layer-code');
-    const infoEl = document.getElementById('info-content');
+    const infoBox = document.getElementById('info-content');
     const btnPrev = document.getElementById('btn-prev');
     const btnNext = document.getElementById('btn-next');
 
-    // 运行状态
-    let posA = A0, posB = B0; // 当前A,B
-    let topo = null;          // 紧凑状态拓扑
-    let bfs = null;           // BFS状态
-    let solution = null;      // 结果
+    // KaTeX
+    let katexReady = false;
+    function waitKatex(){
+      return new Promise(res=>{
+        if (window.renderMathInElement){ katexReady = true; res(); }
+        else setTimeout(()=>waitKatex().then(res), 100);
+      });
+    }
 
-    // 工具
+    // 工具函数
     function setInfo(html){
-      infoEl.innerHTML = html;
-      if (katexOK && window.renderMathInElement){
-        renderMathInElement(infoEl, {
+      infoBox.innerHTML = html;
+      if (katexReady && window.renderMathInElement){
+        renderMathInElement(infoBox, {
           delimiters: [
-            {left:"$$", right:"$$", display:true},
-            {left:"$", right:"$", display:false}
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false }
           ],
-          throwOnError:false
+          throwOnError: false
         });
       }
     }
     function el(tag, attrs={}){ const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
-    function rcOf(id){ return { r: Math.floor(id/cols), c: id%cols }; }
+    function rcOf(id){ return { r: Math.floor(id/cols), c: id % cols }; }
     function xyOf(id){ const {r,c}=rcOf(id); return { x: OFFSET_X + c*CELL + CELL/2, y: OFFSET_Y + r*CELL + CELL/2 }; }
     function show(g, on=true){ g.style.display = on ? 'block' : 'none'; }
-    function hideAll(){
-      [layerCity, layerStateLabel, layerTopo, layerQueue, layerCode].forEach(g=>show(g,false));
-    }
     function cls(g){ while (g.firstChild) g.removeChild(g.firstChild); }
+    function hideAll(){ [layerCity, layerStateLabel, layerTopo, layerQueue, layerCode].forEach(g=>show(g,false)); }
 
-    // 绘制城市网格（一次性位置，后续仅高光/显示隐藏）
+    // 自适应：以“当前可见元素的边界”自适应 viewBox，使动画最大化填满舞台
+    function fitViewBoxToVisible(padding=40){
+      // 统计可见图层的 BBox
+      const visibleLayers = [layerCity, layerStateLabel, layerTopo, layerQueue, layerCode].filter(g => g.style.display !== 'none' && g.childNodes.length > 0);
+      if (visibleLayers.length === 0) return; // 保持原 viewBox
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      visibleLayers.forEach(g=>{
+        try{
+          const bb = g.getBBox();
+          if (!bb || !isFinite(bb.x)) return;
+          minX = Math.min(minX, bb.x);
+          minY = Math.min(minY, bb.y);
+          maxX = Math.max(maxX, bb.x + bb.width);
+          maxY = Math.max(maxY, bb.y + bb.height);
+        }catch(e){ /* ignore */ }
+      });
+      if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) return;
+
+      // 加 padding 并设置最小视窗尺寸，避免过小导致抖动
+      const w = Math.max(600, (maxX - minX) + 2*padding);
+      const h = Math.max(380, (maxY - minY) + 2*padding);
+      const vx = minX - padding;
+      const vy = minY - padding;
+
+      svg.setAttribute('viewBox', `${vx} ${vy} ${w} ${h}`);
+    }
+
+    // 绘制城市网格（一次性位置，后续仅高光/显隐）
     function drawCity(){
       cls(layerCity);
-      // 横向（X）
+      // 横向 X 边
       for (let r=0;r<rows;r++){
         for (let c=0;c<cols;c++){
           const id = r*cols + c;
@@ -258,7 +326,7 @@
           layerCity.appendChild(line);
         }
       }
-      // 纵向（Y）
+      // 纵向 Y 边
       for (let r=0;r<rows;r++){
         for (let c=0;c<cols;c++){
           const id = r*cols + c;
@@ -269,10 +337,10 @@
         }
       }
       // 节点
-      for (let id=0; id<total; id++){
+      for (let id=0; id<N; id++){
         const p = xyOf(id);
         const g = el('g', { class:`node type-${type[id]}`, 'data-id':id });
-        const cir = el('circle', { cx:p.x, cy:p.y, r:22 });
+        const cir = el('circle', { cx:p.x, cy:p.y, r: 22 });
         const tx  = el('text', { x:p.x, y:p.y }); tx.textContent = id;
         g.appendChild(cir); g.appendChild(tx);
         layerCity.appendChild(g);
@@ -280,9 +348,8 @@
       // 轴标签
       const xLbl = el('text', { x: OFFSET_X + GRID_W/2, y: OFFSET_Y + GRID_H + 40, class:'axis-label' });
       xLbl.textContent = 'X 方向（向右环绕）'; xLbl.setAttribute('text-anchor','middle'); layerCity.appendChild(xLbl);
-      const yLbl = el('text', { x: OFFSET_X - 70, y: OFFSET_Y + GRID_H/2, class:'axis-label' });
-      yLbl.textContent = 'Y 方向（向下环绕）';
-      yLbl.setAttribute('transform', `rotate(-90, ${OFFSET_X - 70}, ${OFFSET_Y + GRID_H/2})`);
+      const yLbl = el('text', { x: OFFSET_X - 74, y: OFFSET_Y + GRID_H/2, class:'axis-label' });
+      yLbl.textContent = 'Y 方向（向下环绕）'; yLbl.setAttribute('transform', `rotate(-90, ${OFFSET_X - 74}, ${OFFSET_Y + GRID_H/2})`);
       layerCity.appendChild(yLbl);
     }
     function highlightNodes(ids=[], pulsing=false){
@@ -296,117 +363,145 @@
         }
       });
     }
-    function highlightEdge(from, to, m){ // m: 'x' | 'y'
+    function highlightEdge(from, to, m){ // 'x' | 'y'
       const e = layerCity.querySelector(`.edge[data-from="${from}"][data-to="${to}"][data-m="${m}"]`);
       if (e) e.classList.add('highlighted');
     }
 
-    // 状态标签（只标注文本，不画额外圈）
+    // 状态标签（不额外画圈）
     function drawStateLabel(u, v){
       cls(layerStateLabel);
-      const t = el('text', { x: CENTER_X, y: OFFSET_Y - 20, class:'state-label' });
-      t.setAttribute('text-anchor','middle');
+      const t = el('text', { x: CENTER_X, y: OFFSET_Y - 24, class:'state-label' });
+      t.setAttribute('text-anchor', 'middle');
       t.textContent = `状态 (${u}, ${v})`;
       layerStateLabel.appendChild(t);
     }
 
-    // 紧凑状态拓扑（7个点，短边，居中）
+    // -------- 更复杂的状态拓扑（分层，非环形，节点更多） --------
     const K = (u,v)=>`${u},${v}`;
-    function buildTopo(){
-      // 选取少量状态，略微多一点：7个
-      const s0  = {u:A0, v:B0};
-      const sx  = {u:xTo[s0.u], v:xTo[s0.v]};
-      const sy  = {u:yTo[s0.u], v:yTo[s0.v]};
-      const sxx = {u:xTo[sx.u], v:xTo[sx.v]};
-      const sxy = {u:yTo[sx.u], v:yTo[sx.v]};
-      const syy = {u:yTo[sy.u], v:yTo[sy.v]};
-      const syx = {u:xTo[sy.u], v:xTo[sy.v]}; // 等于 sxy 在4x4下不一定相同，这里恰好相同会自动去重作处理
 
-      // 去重
-      const listRaw = [s0,sx,sy,sxx,sxy,syy,syx];
-      const seen = new Map();
-      for (const s of listRaw){
-        seen.set(K(s.u,s.v), s);
-      }
-      const nodes = Array.from(seen.values());
+    function buildTopoComplex({ maxDepth=3, maxNodes=18 } = {}){
+      // 按状态图从 (A0,B0) 做有界 BFS，收集节点与边
+      const start = K(A0,B0);
+      const nodes = new Map();    // key -> {u,v,depth}
+      const levels = new Map();   // depth -> [keys]
+      const edges = [];           // {a,b,type}
+      let firstTargetKey = null;
 
-      // 边（无向），仅连接相差一步的（在本子集内的）
-      const edges = [];
-      function link(a,b, typ){
-        const ka = K(a.u,a.v), kb = K(b.u,b.v);
-        if (ka===kb) return;
-        if (seen.has(ka) && seen.has(kb)){
-          // 防止重复
-          if (!edges.some(e=>(e.a===ka&&e.b===kb)||(e.a===kb&&e.b===ka))) {
-            edges.push({a:ka,b:kb,type:typ});
+      const q = [ start ];
+      nodes.set(start, { u:A0, v:B0, depth:0 });
+      levels.set(0, [start]);
+
+      const pushLevel = (d, k) => {
+        if (!levels.has(d)) levels.set(d, []);
+        levels.get(d).push(k);
+      };
+
+      let head = 0;
+      while (head < q.length){
+        const cur = q[head++];
+
+        const {u,v, depth} = nodes.get(cur);
+        if (type[u] !== type[v] && firstTargetKey === null){
+          firstTargetKey = cur;
+        }
+        if (depth >= maxDepth) continue;
+
+        const nexts = [
+          { key: K(xTo[u], xTo[v]), u: xTo[u], v: xTo[v], type:'x' },
+          { key: K(yTo[u], yTo[v]), u: yTo[u], v: yTo[v], type:'y' },
+        ];
+
+        for (const nb of nexts){
+          if (!nodes.has(nb.key)){
+            if (nodes.size >= maxNodes) continue;
+            nodes.set(nb.key, { u: nb.u, v: nb.v, depth: depth+1 });
+            q.push(nb.key);
+            pushLevel(depth+1, nb.key);
+          }
+          // 记录无向边（避免重复）
+          if (!edges.some(e => (e.a===cur && e.b===nb.key) || (e.a===nb.key && e.b===cur))){
+            edges.push({ a: cur, b: nb.key, type: nb.type });
           }
         }
+
+        if (nodes.size >= maxNodes) break;
       }
-      link(s0, sx, 'x'); link(s0, sy, 'y');
-      link(sx, sxx, 'x'); link(sx, sxy, 'y');
-      link(sy, syy, 'y'); link(sy, syx, 'x');
 
-      // 布局（同一中心，连线短一些）
-      const dx = 140, dy = 120;
+      // 为每一层布局位置（水平等距，垂直分层）
       const pos = new Map();
-      pos.set(K(s0.u,s0.v),  { x:CENTER_X,       y:CENTER_Y });
-      pos.set(K(sx.u,sx.v),  { x:CENTER_X+dx,    y:CENTER_Y });
-      pos.set(K(sy.u,sy.v),  { x:CENTER_X,       y:CENTER_Y+dy });
-      pos.set(K(sxx.u,sxx.v),{ x:CENTER_X+2*dx,  y:CENTER_Y });
-      pos.set(K(sxy.u,sxy.v),{ x:CENTER_X+dx,    y:CENTER_Y+dy });
-      pos.set(K(syy.u,syy.v),{ x:CENTER_X,       y:CENTER_Y+2*dy });
-      pos.set(K(syx.u,syx.v),{ x:CENTER_X+dx/2,  y:CENTER_Y+dy/2 }); // 斜对角中间一点，紧凑
+      const dy = 110;                         // 层距
+      const y0 = CENTER_Y - (Math.min(maxDepth, levels.size-1) * dy)/2;
+      const marginX = 110;                    // 层内横向间距
 
-      return { nodes, edges, pos };
+      Array.from(levels.keys()).sort((a,b)=>a-b).forEach((d, idx)=>{
+        const arr = levels.get(d);
+        const totalW = (arr.length - 1) * marginX;
+        const x0 = CENTER_X - totalW/2;
+        arr.forEach((k, i)=>{
+          pos.set(k, { x: x0 + i * marginX, y: y0 + idx * dy });
+        });
+      });
+
+      // 导出节点数组
+      const nodeArr = Array.from(nodes.entries()).map(([k, v]) => ({ key:k, u:v.u, v:v.v, depth:v.depth }));
+
+      return { nodes: nodeArr, edges, pos, levels, firstTargetKey };
     }
-    function drawTopo(t){
+
+    function drawTopo(topo){
       cls(layerTopo);
       // 边
-      for (const e of t.edges){
-        const p1 = t.pos.get(e.a), p2 = t.pos.get(e.b);
-        const ln = el('line', { x1:p1.x, y1:p1.y, x2:p2.x, y2:p2.y, class:`state-edge ${e.type}`, 'data-a':e.a, 'data-b':e.b, 'data-type':e.type });
+      topo.edges.forEach(e=>{
+        const p1 = topo.pos.get(e.a), p2 = topo.pos.get(e.b);
+        const ln = el('line', {
+          x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+          class: `state-edge ${e.type}`,
+          'data-a': e.a, 'data-b': e.b, 'data-type': e.type
+        });
         layerTopo.appendChild(ln);
-      }
+      });
       // 点
-      for (const s of t.nodes){
-        const k = K(s.u,s.v); const p = t.pos.get(k);
-        const g = el('g', { class:'state-node', 'data-k':k });
-        const cir = el('circle', { cx:p.x, cy:p.y, r:20 });
-        const tx  = el('text', { x:p.x, y:p.y }); tx.textContent = `(${s.u},${s.v})`;
+      topo.nodes.forEach(s=>{
+        const p = topo.pos.get(s.key);
+        const g = el('g', { class:'state-node', 'data-k': s.key });
+        const cir = el('circle', { cx: p.x, cy: p.y, r: 20 });
+        const tx  = el('text', { x: p.x, y: p.y }); tx.textContent = `(${s.u},${s.v})`;
         g.appendChild(cir); g.appendChild(tx);
         layerTopo.appendChild(g);
-      }
+      });
     }
     function topoNode(k){ return layerTopo.querySelector(`.state-node[data-k="${k}"]`); }
     function topoEdge(a,b,type){
-      return layerTopo.querySelector(`.state-edge[data-a="${a}"][data-b="${b}"][data-type="${type}"]`)
-          || layerTopo.querySelector(`.state-edge[data-a="${b}"][data-b="${a}"][data-type="${type}"]`);
+      return layerTopo.querySelector(`.state-edge[data-a="${a}"][data-b="${b}"][data-type="${type}"]`) ||
+             layerTopo.querySelector(`.state-edge[data-a="${b}"][data-b="${a}"][data-type="${type}"]`);
     }
-    function markNode(k, clsName){ const n = topoNode(k); if (n){ n.classList.remove('visited','current','target','path'); n.classList.add(clsName); } }
-    function addDistLabel(k, d){
+    function markNode(k, mode){ const n = topoNode(k); if (n){ n.classList.remove('visited','current','target','path'); n.classList.add(mode); } }
+    function addDistLabel(topo, k, d){
       const p = topo.pos.get(k);
-      const t = el('text', { x:p.x, y:p.y-28 }); t.textContent = d;
-      t.setAttribute('class','state-node'); t.style.fontSize='13px'; t.style.fontWeight='800'; t.style.fill='#667eea';
+      const t = el('text', { x: p.x, y: p.y - 28, class:'state-node' });
+      t.style.fontSize = '13px'; t.style.fontWeight = '800'; t.style.fill = '#667eea';
+      t.textContent = String(d);
       layerTopo.appendChild(t);
     }
     function glowEdge(a,b,type,on=true){ const e = topoEdge(a,b,type); if (e){ if (on) e.classList.add('highlighted'); else e.classList.remove('highlighted'); } }
 
     // 队列可视化
-    function drawQueue(q, dist){
+    function drawQueue(queue, distMap){
       cls(layerQueue);
-      const fo = el('foreignObject', { x: CENTER_X-220, y: CENTER_Y+210, width: 440, height: 140, class:'queue-fo' });
-      const div = document.createElement('div'); div.className='q';
-      const t = document.createElement('div'); t.className='t'; t.textContent='BFS 队列';
-      const items = document.createElement('div'); items.className='items';
-      if (!q || q.length===0){
-        const it = document.createElement('div'); it.className='it'; it.style.opacity='.6'; it.textContent='(空)';
+      const fo = el('foreignObject', { x: CENTER_X - 220, y: CENTER_Y + 180, width: 440, height: 150, class:'queue-fo' });
+      const div = document.createElement('div'); div.className = 'q';
+      const t = document.createElement('div'); t.className = 't'; t.textContent = 'BFS 队列';
+      const items = document.createElement('div'); items.className = 'items';
+      if (!queue || queue.length === 0){
+        const it = document.createElement('div'); it.className = 'it'; it.style.opacity = '.6'; it.textContent = '(空)';
         items.appendChild(it);
       }else{
-        for (const k of q){
+        queue.forEach(k=>{
           const it = document.createElement('div'); it.className='it';
-          it.textContent = `${k}:${dist.get(k) ?? '?'}`;
+          it.textContent = `${k}:${distMap.get(k) ?? '?'}`;
           items.appendChild(it);
-        }
+        });
       }
       div.appendChild(t); div.appendChild(items); fo.appendChild(div); layerQueue.appendChild(fo);
     }
@@ -414,9 +509,9 @@
     // 代码层
     function drawCode(){
       cls(layerCode);
-      const fo = el('foreignObject', { x:20, y:20, width:1160, height:660 });
-      const wrap = document.createElement('div'); wrap.className='code-wrap fade-in';
-      const pre = document.createElement('pre'); pre.className='code-box';
+      const fo = el('foreignObject', { x: 20, y: 20, width: 1160, height: 660 });
+      const wrap = document.createElement('div'); wrap.className = 'code-wrap fade-in';
+      const pre = document.createElement('pre'); pre.className = 'code-box';
       pre.innerHTML =
 `<span class="cm">// 在抽象的状态图上执行 BFS，首次发现类型不同即为最短步数</span>
 <span class="ty">int</span> <span class="fn">solve</span>(<span class="ty">int</span> A, <span class="ty">int</span> B,
@@ -438,23 +533,16 @@
     <span class="cm">// 目标：两点类型不同</span>
     <span class="kw">if</span> (type[u] != type[v]) <span class="kw">return</span> d;
 
-    <span class="cm">// 同步移动 X</span>
+    <span class="cm">// 两种同步移动</span>
     {
       <span class="ty">int</span> nu = x[u], nv = x[v];
       <span class="ty">long long</span> k = key(nu,nv);
-      <span class="kw">if</span> (!dist.count(k)) {
-        dist[k] = d + <span class="num">1</span>;
-        q.push({nu,nv});
-      }
+      <span class="kw">if</span> (!dist.count(k)) { dist[k] = d + <span class="num">1</span>; q.push({nu,nv}); }
     }
-    <span class="cm">// 同步移动 Y</span>
     {
       <span class="ty">int</span> nu = y[u], nv = y[v];
       <span class="ty">long long</span> k = key(nu,nv);
-      <span class="kw">if</span> (!dist.count(k)) {
-        dist[k] = d + <span class="num">1</span>;
-        q.push({nu,nv});
-      }
+      <span class="kw">if</span> (!dist.count(k)) { dist[k] = d + <span class="num">1</span>; q.push({nu,nv}); }
     }
   }
   <span class="kw">return</span> -<span class="num">1</span>; <span class="cm">// 无解</span>
@@ -462,7 +550,11 @@
       wrap.appendChild(pre); fo.appendChild(wrap); layerCode.appendChild(fo);
     }
 
-    // 场景驱动（同一位置，通过图层显示/隐藏）
+    // -------- 场景 --------
+    let topo = null;   // 复杂拓扑
+    let bfs = null;    // BFS 动画状态
+    let solution = null;
+
     function run(){
       hideAll();
       btnPrev.disabled = scene===0;
@@ -470,162 +562,217 @@
       btnNext.textContent = scene===lastScene ? '演示完成' : '下一步';
 
       if (scene===0){
-        posA=A0; posB=B0;
+        // 场景0：题目描述 + 放大示意网络 + 起点高光
+        posA = A0; posB = B0;
         setInfo(`
-          <h2>场景0：问题与放大示意网络</h2>
-          <p><strong>问题：</strong>从 A=${A0} 与 B=${B0} 同时出发，按相同方向序列（X=向右环绕，Y=向下环绕）同步移动，问最少多少步使两者到达的节点类型不同？</p>
-          <p>下图为放大的 4×4 矩形网格示意：红线为 X，蓝线为 Y。动画始终在同一位置显示。</p>
+          <h2>场景0：题目描述（E 城市规划）</h2>
+          <div class="problem-box">
+E
+城市规划
+在某市有 n 个路口，每个路口都连接着另外两个路口，可以向方向 X 行走到
+达某个路口，或向方向 Y 行走到达某个路口（可能相同也可能回到原地），所有
+的路口被分为两种类型（用 0/1 表示），路口编号为 0 到 n-1。现在以“路口独特
+度”指标评价该市的城市规划合理性。从 A 和 B 两个路口出发，一直按照同样
+的方向模拟从 A 路口出发和从 B 路口出发走，直到走到种类不同的路口，所需
+要的最短步数就是“路口独特度”。现在，给出该市的地图，请求出“路口独特
+度”。
+
+输入说明：
+输入包含多组数据，第一行输入数据组数 T。每组数据的输入如下：
+第一行三个正整数：n,A,B（A≠B）
+第二行到第 n+1 行每行三个整数：xi, yi, ti，表示路口 i 向方向 X 走到达路口 xi，
+向方向 Y 走到达路口 yi，它的种类为 ti。
+
+输出说明：
+如果能够判断，则输出最少步数，否则输出 GG 
+
+输入样例：
+2 
+3 1 2 
+1 2 1 
+0 2 0 
+0 1 0 
+3 1 2 
+1 2 0 
+2 0 1 
+0 1 1 
+
+样例输出：
+GG 
+1 
+
+数据范围：
+∑n<=100000
+          </div>
+          <p>下图为放大的 4×4 矩形网格示意：红线为 X（向右环绕），蓝线为 Y（向下环绕）。</p>
         `);
         drawCity(); show(layerCity,true);
-        // 起点高光
         highlightNodes([A0,B0], true);
+        fitViewBoxToVisible();
       }
       else if (scene===1){
         setInfo(`
           <h2>场景1：手动模拟（第1步 X）</h2>
-          <p>第1步选 X：A: ${A0} → ${xTo[A0]}，B: ${B0} → ${xTo[B0]}。</p>
-          <p>检查类型：type(${xTo[A0]})=${type[xTo[A0]]}，type(${xTo[B0]})=${type[xTo[B0]]}，相同，继续。</p>
+          <p>第1步选择 X：A: ${A0} → ${xTo[A0]}，B: ${B0} → ${xTo[B0]}。</p>
+          <p>类型检查：type(${xTo[A0]})=${type[xTo[A0]]}，type(${xTo[B0]})=${type[xTo[B0]]}，相同，继续。</p>
         `);
         show(layerCity,true);
         highlightNodes([A0,B0], true);
-        setTimeout(()=>{ highlightEdge(A0, xTo[A0], 'x'); highlightEdge(B0, xTo[B0], 'x'); }, 350);
-        setTimeout(()=>{ posA = xTo[A0]; posB = xTo[B0]; highlightNodes([posA,posB], true); }, 1100);
+        setTimeout(()=>{ highlightEdge(A0, xTo[A0], 'x'); highlightEdge(B0, xTo[B0], 'x'); fitViewBoxToVisible(); }, 200);
+        setTimeout(()=>{ posA = xTo[A0]; posB = xTo[B0]; highlightNodes([posA,posB], true); fitViewBoxToVisible(); }, 900);
       }
       else if (scene===2){
         setInfo(`
           <h2>场景2：手动模拟（第2步 Y）与挑战</h2>
-          <p>第2步选 Y：A: ${posA} → ${yTo[posA]}，B: ${posB} → ${yTo[posB]}。</p>
-          <p>随着步数增加，手动模拟复杂且易错。我们转而抽象为“状态 (u,v)”并在新图上做最短路。</p>
+          <p>第2步选择 Y：A: ${posA} → ${yTo[posA]}，B: ${posB} → ${yTo[posB]}。</p>
+          <p>随着步数增加，手动模拟复杂且易错。引入“状态 (u,v)”的抽象，把问题转换为新图上的最短路。</p>
         `);
         show(layerCity,true);
         highlightNodes([posA,posB], true);
-        setTimeout(()=>{ highlightEdge(posA, yTo[posA], 'y'); highlightEdge(posB, yTo[posB], 'y'); }, 350);
-        setTimeout(()=>{ posA = yTo[posA]; posB = yTo[posB]; highlightNodes([posA,posB], true); }, 1100);
+        setTimeout(()=>{ highlightEdge(posA, yTo[posA], 'y'); highlightEdge(posB, yTo[posB], 'y'); fitViewBoxToVisible(); }, 200);
+        setTimeout(()=>{ posA = yTo[posA]; posB = yTo[posB]; highlightNodes([posA,posB], true); fitViewBoxToVisible(); }, 900);
       }
       else if (scene===3){
         setInfo(`
           <h2>场景3：核心思想——状态抽象</h2>
-          <p>保持示意图一致，不额外画圈。仅高亮两个当前位置的圆，并在图上方标注：<code>状态 (${posA}, ${posB})</code>。</p>
+          <p>不改变示意图，仅高亮当前两个圆，并在图上方标注状态：<code>状态 (${posA}, ${posB})</code>。</p>
         `);
         show(layerCity,true);
         highlightNodes([posA,posB], true);
         drawStateLabel(posA, posB); show(layerStateLabel,true);
+        fitViewBoxToVisible();
       }
       else if (scene===4){
         setInfo(`
           <h2>场景4：状态转移（紧凑拓扑）</h2>
           <p>一次同步移动（选 X 或 Y）对应状态间一次转移。下图仅保留少量状态，位于画板中心，连线更短更紧凑。</p>
         `);
-        topo = buildTopo();
+        topo = buildTopoComplex({ maxDepth: 3, maxNodes: 18 });
         drawTopo(topo); show(layerTopo,true);
-        // 高亮起点与它的两条扩展
-        const s0k = K(A0,B0), sxk = K(xTo[A0], xTo[B0]), syk = K(yTo[A0], yTo[B0]);
-        setTimeout(()=>{ markNode(s0k,'current'); }, 250);
-        setTimeout(()=>{ glowEdge(s0k, sxk, 'x', true); markNode(sxk,'visited'); }, 800);
-        setTimeout(()=>{ glowEdge(s0k, syk, 'y', true); markNode(syk,'visited'); }, 1300);
+        // 高亮起点及两条扩展
+        const s0 = K(A0,B0);
+        const sx = K(xTo[A0], xTo[B0]);
+        const sy = K(yTo[A0], yTo[B0]);
+        setTimeout(()=>{ markNode(s0,'current'); fitViewBoxToVisible(); }, 200);
+        setTimeout(()=>{ markNode(sx,'visited'); glowEdge(s0,sx,'x',true); fitViewBoxToVisible(); }, 700);
+        setTimeout(()=>{ markNode(sy,'visited'); glowEdge(s0,sy,'y',true); fitViewBoxToVisible(); }, 1200);
       }
       else if (scene===5){
         setInfo(`
           <h2>场景5：BFS 初始化</h2>
           <p>在紧凑拓扑上执行 BFS，起点 <code>(${A0}, ${B0})</code> 距离 0，逐层扩展，直至首次遇到类型不同的状态。</p>
         `);
-        if (!topo) topo = buildTopo();
+        if (!topo) topo = buildTopoComplex({ maxDepth: 3, maxNodes: 18 });
         drawTopo(topo); show(layerTopo,true);
-        // BFS 初始化
+
+        // 初始化 BFS
         const startK = K(A0,B0);
         bfs = {
-          q:[startK],
-          dist:new Map([[startK,0]]),
-          prev:new Map(),
-          via:new Map(),
-          vis:new Set([startK]),
-          found:null
+          q: [ startK ],
+          dist: new Map([[startK, 0]]),
+          prev: new Map(),
+          via: new Map(),
+          vis: new Set([ startK ]),
+          found: null
         };
-        markNode(startK,'visited'); addDistLabel(startK,0);
+        markNode(startK,'visited'); addDistLabel(topo, startK, 0);
         drawQueue(bfs.q, bfs.dist); show(layerQueue,true);
+        fitViewBoxToVisible();
       }
       else if (scene===6){
         setInfo(`
           <h2>场景6：BFS 扩展</h2>
-          <p>从队首取出状态，检查其邻居（由 X 或 Y 一步可达）。若发现类型不同，立即停止并回溯最短路径。</p>
+          <p>从队首取出状态，检查其邻居（X/Y），若发现类型不同，立即停止并回溯最短路径。</p>
         `);
-        if (!bfs || !topo){ // 保险
-          topo = buildTopo(); drawTopo(topo); show(layerTopo,true);
-          const startK = K(A0,B0);
-          bfs = { q:[startK], dist:new Map([[startK,0]]), prev:new Map(), via:new Map(), vis:new Set([startK]), found:null };
+        if (!bfs || !topo){
+          topo = buildTopoComplex({ maxDepth: 3, maxNodes: 18 });
+          run(); return;
         }
-        drawTopo(topo); show(layerTopo,true); drawQueue(bfs.q, bfs.dist); show(layerQueue,true);
+        drawTopo(topo); show(layerTopo,true);
+        drawQueue(bfs.q, bfs.dist); show(layerQueue,true);
 
-        if (bfs.q.length===0){
+        if (bfs.q.length === 0){
           solution = { ok:false };
           scene = 7; run(); return;
         }
-        const cur = bfs.q.shift(); const d0 = bfs.dist.get(cur) ?? 0;
-        markNode(cur,'current'); drawQueue(bfs.q, bfs.dist);
+        const cur = bfs.q.shift();
+        const d0  = bfs.dist.get(cur) ?? 0;
+        markNode(cur,'current');
+        drawQueue(bfs.q, bfs.dist);
+        fitViewBoxToVisible();
 
-        const [u,v] = cur.split(',').map(Number);
-        if (type[u] !== type[v]){
-          bfs.found = cur; solution = { ok:true, end:cur }; scene=7; run(); return;
+        // 终止条件（安全检查）
+        {
+          const [u,v] = cur.split(',').map(Number);
+          if (type[u] !== type[v]){
+            bfs.found = cur;
+            solution = { ok:true, end: cur };
+            scene = 7; run(); return;
+          }
         }
 
-        // 找到 t.adj: 邻居=在本拓扑中与 cur 相连的点（已编码在 edges）
-        const nbrs = topo.edges
-          .filter(e=> (e.a===cur)||(e.b===cur))
-          .map(e=> ({ key: e.a===cur ? e.b : e.a, type: e.type }));
+        // 邻居：从 topo.edges 中找与 cur 相连的
+        const neighbors = topo.edges
+          .filter(e => e.a===cur || e.b===cur)
+          .map(e => ({ key: e.a===cur ? e.b : e.a, type: e.type }));
 
-        let delay = 300;
-        for (const nb of nbrs){
-          setTimeout(()=>{ glowEdge(cur, nb.key, nb.type, true); }, delay);
+        let delay = 250;
+        for (const nb of neighbors){
+          setTimeout(()=>{ glowEdge(cur, nb.key, nb.type, true); fitViewBoxToVisible(); }, delay);
+
           setTimeout(()=>{
             const [nu,nv] = nb.key.split(',').map(Number);
             if (type[nu] !== type[nv]){
-              if (!bfs.vis?.has?.(nb.key)){ bfs.vis?.add?.(nb.key); }
-              bfs.dist.set(nb.key, d0+1);
-              bfs.prev.set(nb.key, cur);
-              bfs.via.set(nb.key, nb.type);
+              // 记录并结束
+              if (!bfs.vis.has(nb.key)){
+                bfs.vis.add(nb.key);
+                bfs.dist.set(nb.key, d0+1);
+                bfs.prev.set(nb.key, cur);
+                bfs.via.set(nb.key, nb.type);
+              }
               bfs.found = nb.key;
               solution = { ok:true, end: nb.key };
-              scene=7; run();
+              scene = 7; run();
             }else{
-              if (!bfs.vis?.has?.(nb.key) && !bfs.vis?.has){
-                // 兼容旧对象的保护
-              }
-              if (!bfs.vis || !bfs.vis.has(nb.key)){
-                if (!bfs.vis) bfs.vis = new Set();
+              if (!bfs.vis.has(nb.key)){
                 bfs.vis.add(nb.key);
                 bfs.dist.set(nb.key, d0+1);
                 bfs.prev.set(nb.key, cur);
                 bfs.via.set(nb.key, nb.type);
                 bfs.q.push(nb.key);
-                markNode(nb.key,'visited'); addDistLabel(nb.key, d0+1);
+                markNode(nb.key,'visited'); addDistLabel(topo, nb.key, d0+1);
                 drawQueue(bfs.q, bfs.dist);
+                fitViewBoxToVisible();
               }
             }
-          }, delay+350);
-          delay += 600;
+          }, delay + 350);
+
+          delay += 550;
+          // 若期间 scene 被切到7，后续 setTimeout 的 run() 会接管流程
         }
       }
       else if (scene===7){
         show(layerTopo,true);
-        // 结果展示
         if (solution && solution.ok){
-          const end = solution.end;
           // 回溯路径
+          const end = solution.end;
           const path = [];
           let k = end;
           while (k){
             path.push(k);
-            const pre = bfs.prev.get(k);
-            if (!pre) break;
-            k = pre;
+            const p = bfs.prev.get(k);
+            if (!p) break;
+            k = p;
           }
           path.reverse();
-          const distAns = bfs.dist.get(end) ?? (path.length-1);
+          const distAns = bfs.dist.get(end) ?? (path.length - 1);
+
           setInfo(`
             <h2>场景7：找到解！</h2>
             <p><strong>最短步数：</strong>${distAns}</p>
             <p>已在状态拓扑上高亮最短路径。</p>
           `);
+
           // 高亮路径
           for (let i=0;i<path.length;i++){
             const pk = path[i];
@@ -638,12 +785,14 @@
           }
           markNode(end,'target');
           drawQueue([], bfs.dist); show(layerQueue,true);
+          fitViewBoxToVisible();
         }else{
           setInfo(`
             <h2>场景7：搜索结束</h2>
-            <p>队列耗尽，未找到类型不同的可达状态，判定：<strong>无解</strong>。</p>
+            <p>队列耗尽，未找到类型不同的可达状态，判定：<strong>无解（GG）</strong>。</p>
           `);
           drawQueue([], new Map()); show(layerQueue,true);
+          fitViewBoxToVisible();
         }
       }
       else if (scene===8){
@@ -652,16 +801,25 @@
           <p>最终的算法实现，就是在抽象状态图上运行标准 BFS。</p>
         `);
         drawCode(); show(layerCode,true);
+        fitViewBoxToVisible();
       }
     }
 
+    // 交互
+    btnPrev.addEventListener('click', ()=>{ if (scene>0){ scene--; run(); } });
+    btnNext.addEventListener('click', ()=>{ if (scene<lastScene){ scene++; run(); } });
+
     // 初始化
     waitKatex().then(()=>{
-      // 初始绘制图层（一次性）
-      drawCity(); cls(layerStateLabel); cls(layerTopo); cls(layerQueue); cls(layerCode);
+      drawCity(); // 预构建网格
       run();
-      btnPrev.addEventListener('click', ()=>{ if (scene>0){ scene--; run(); } });
-      btnNext.addEventListener('click', ()=>{ if (scene<lastScene){ scene++; run(); } });
+    });
+
+    // 窗口自适应
+    let resizeTimer = null;
+    window.addEventListener('resize', ()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(()=> fitViewBoxToVisible(), 60);
     });
   </script>
 </body>
