@@ -597,10 +597,17 @@
         }
         
         function clearCanvas() {
-            while (canvas.childNodes.length > 1) {
-                canvas.removeChild(canvas.lastChild);
-            }
-        }
+    // 保存defs元素
+    const defsElement = canvas.querySelector('defs');
+    
+    // 清空所有内容
+    canvas.innerHTML = '';
+    
+    // 恢复defs
+    if (defsElement) {
+        canvas.appendChild(defsElement.cloneNode(true));
+    }
+}
         
         function setExplanation(html) {
             explanationContent.innerHTML = html;
@@ -695,6 +702,7 @@
         
         function renderScene(step) {
             clearCanvas();
+            canvas.setAttribute('viewBox', '0 0 800 600');
             
             switch(step) {
                 case 0:
