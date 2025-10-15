@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合肥工业大学程艺小组演示——F题</title>
+    
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 100%;
+            height: calc(100vh - 20px);
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        header h3 {
+            font-size: 1em;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animation Canvas */
+        .animation-canvas {
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            background: #fafafa;
+            position: relative;
+            overflow: auto;
+            min-height: 400px;
+        }
+        
+        .animation-canvas::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .animation-canvas::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+        
+        .animation-canvas::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
+        
+        .animation-canvas::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+        
+        .canvas-wrapper {
+            position: relative;
+            min-width: 800px;
+            min-height: 600px;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        /* Explanation Panel */
+        .explanation-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            border: 2px solid #e9ecef;
+            overflow-y: auto;
+        }
+        
+        .explanation-panel h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+        }
+        
+        .explanation-panel h3 {
+            color: #764ba2;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .explanation-panel p {
+            line-height: 1.8;
+            margin-bottom: 12px;
+            font-size: 1.05em;
+        }
+        
+        .explanation-panel ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .explanation-panel li {
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+        
+        .explanation-panel code {
+            background: #eef2ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #7c3aed;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .explanation-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .explanation-panel::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+        
+        .explanation-panel::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            padding: 15px 20px;
+            text-align: center;
+            flex-shrink: 0;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .control-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            font-weight: 600;
+        }
+        
+        .control-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .control-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .control-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+        
+        .prev-button {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+        }
+        
+        .prev-button:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(113, 128, 150, 0.6);
+        }
+        
+        /* Problem Box */
+        .problem-box {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .problem-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .problem-box .sample {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* SVG Styles */
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .tree-node circle {
+            stroke-width: 3;
+            transition: all 0.4s ease;
+        }
+        
+        .tree-node.normal circle {
+            fill: #3498db;
+            stroke: #2980b9;
+        }
+        
+        .tree-node.root circle {
+            fill: #ffd700;
+            stroke: #f39c12;
+            filter: drop-shadow(0 0 10px #ffd700);
+        }
+        
+        .tree-node.highlighted circle {
+            stroke: #2ecc71;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 8px #2ecc71);
+        }
+        
+        .tree-node.pulsing circle {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                stroke-width: 5;
+                filter: drop-shadow(0 0 8px #2ecc71);
+            }
+            50% {
+                stroke-width: 7;
+                filter: drop-shadow(0 0 14px #2ecc71);
+            }
+        }
+        
+        .tree-node text {
+            fill: white;
+            font-size: 16px;
+            font-weight: 700;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+        }
+        
+        .value-label {
+            font-size: 14px;
+            font-weight: 600;
+            fill: #e74c3c;
+            text-anchor: middle;
+        }
+        
+        .tree-edge {
+            stroke: #95a5a6;
+            stroke-width: 3;
+            fill: none;
+            transition: all 0.4s ease;
+        }
+        
+        .tree-edge.valid {
+            stroke: #2ecc71;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 4px #2ecc71);
+        }
+        
+        .tree-edge.invalid {
+            stroke: #e74c3c;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 4px #e74c3c);
+        }
+        
+        .tree-edge.selected {
+            stroke: #27ae60;
+            stroke-width: 6;
+            filter: drop-shadow(0 0 6px #27ae60);
+        }
+        
+        .tree-edge.arrow {
+            marker-end: url(#arrowhead);
+        }
+        
+        .dp-state-box {
+            stroke: #667eea;
+            stroke-width: 2;
+            fill: white;
+            rx: 8;
+        }
+        
+        .dp-state-text {
+            font-size: 14px;
+            font-weight: 600;
+            fill: #334155;
+            text-anchor: middle;
+        }
+        
+        .calculation-box {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .calculation-title {
+            font-weight: 800;
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .calculation-content {
+            font-size: 15px;
+            line-height: 1.8;
+        }
+        
+        .x-mark {
+            fill: #e74c3c;
+            font-size: 48px;
+            font-weight: 900;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        
+        /* Code Block */
+        .code-box {
+            background: #0b1020;
+            color: #cbd5e1;
+            border-radius: 10px;
+            overflow: auto;
+            padding: 20px;
+            font-family: Consolas, Monaco, "Courier New", monospace;
+            line-height: 1.6;
+            white-space: pre;
+            font-size: 14px;
+            max-height: 100%;
+        }
+        
+        .code-box .kw { color: #c678dd; }
+        .code-box .ty { color: #e5c07b; }
+        .code-box .fn { color: #61afef; }
+        .code-box .num { color: #d19a66; }
+        .code-box .cm { color: #636e7b; font-style: italic; }
+        .code-box .str { color: #98c379; }
+        
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>合肥工业大学程艺小组演示——F题</h1>
+            <h3>组员: 李昊 周骏浩 叶豪杰 姚睿</h3>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Animation Canvas -->
+            <div class="animation-canvas" id="animationCanvas">
+                <div class="canvas-wrapper">
+                    <svg id="canvas" viewBox="0 0 800 600">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#95a5a6" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Explanation Panel -->
+            <div class="explanation-panel" id="explanation">
+                <div id="explanation-content"></div>
+            </div>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <button class="control-button prev-button" id="prevButton" disabled>上一步</button>
+            <button class="control-button" id="nextButton">下一步</button>
+        </div>
+    </div>
+    
+    <script>
+        // Global state
+        let currentStep = 0;
+        const totalSteps = 10;
+        
+        // SVG namespace
+        const svgNS = "http://www.w3.org/2000/svg";
+        const canvas = document.getElementById('canvas');
+        const explanationContent = document.getElementById('explanation-content');
+        const nextButton = document.getElementById('nextButton');
+        const prevButton = document.getElementById('prevButton');
+        
+        // Tree data structure
+        const treeData = {
+            nodes: [
+                { id: 1, value: 3 },
+                { id: 2, value: 5 },
+                { id: 3, value: 4 },
+                { id: 4, value: 2 },
+                { id: 5, value: 6 },
+                { id: 6, value: 3 },
+                { id: 7, value: 4 }
+            ],
+            edges: [
+                { from: 1, to: 2 },
+                { from: 1, to: 3 },
+                { from: 2, to: 4 },
+                { from: 2, to: 5 },
+                { from: 3, to: 6 },
+                { from: 3, to: 7 }
+            ]
+        };
+        
+        // Tree layout positions
+        const positions = {
+            1: { x: 400, y: 100 },
+            2: { x: 250, y: 250 },
+            3: { x: 550, y: 250 },
+            4: { x: 150, y: 400 },
+            5: { x: 350, y: 400 },
+            6: { x: 450, y: 400 },
+            7: { x: 650, y: 400 }
+        };
+        
+        // DP values storage
+        let dpValues = {};
+        
+        // Wait for KaTeX to load
+        let katexReady = false;
+        
+        function waitForKaTeX() {
+            return new Promise((resolve) => {
+                if (window.renderMathInElement) {
+                    katexReady = true;
+                    resolve();
+                } else {
+                    setTimeout(() => {
+                        waitForKaTeX().then(resolve);
+                    }, 100);
+                }
+            });
+        }
+        
+        // Initialize
+        waitForKaTeX().then(() => {
+            nextButton.addEventListener('click', nextStep);
+            prevButton.addEventListener('click', prevStep);
+            renderScene(0);
+            updateButtonStates();
+        });
+        
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                renderScene(currentStep);
+                updateButtonStates();
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                renderScene(currentStep);
+                updateButtonStates();
+            }
+        }
+        
+        function updateButtonStates() {
+            prevButton.disabled = currentStep === 0;
+            
+            if (currentStep >= totalSteps) {
+                nextButton.disabled = true;
+                nextButton.textContent = '演示完成';
+            } else {
+                nextButton.disabled = false;
+                nextButton.textContent = '下一步';
+            }
+        }
+        
+        function clearCanvas() {
+            while (canvas.childNodes.length > 1) {
+                canvas.removeChild(canvas.lastChild);
+            }
+        }
+        
+        function setExplanation(html) {
+            explanationContent.innerHTML = html;
+            if (window.renderMathInElement && katexReady) {
+                renderMathInElement(explanationContent, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+        
+        function createSVGElement(tag, attrs = {}) {
+            const el = document.createElementNS(svgNS, tag);
+            for (const [key, value] of Object.entries(attrs)) {
+                el.setAttribute(key, value);
+            }
+            return el;
+        }
+        
+        function drawTree(options = {}) {
+            const { highlightEdges = [], highlightNodes = [], rootNode = null, showArrows = false, edgeClass = 'tree-edge' } = options;
+            
+            // Draw edges first
+            treeData.edges.forEach(edge => {
+                const from = positions[edge.from];
+                const to = positions[edge.to];
+                
+                let className = edgeClass;
+                if (highlightEdges.some(e => (e.from === edge.from && e.to === edge.to) || (e.from === edge.to && e.to === edge.from))) {
+                    const highlightEdge = highlightEdges.find(e => (e.from === edge.from && e.to === edge.to) || (e.from === edge.to && e.to === edge.from));
+                    className += ' ' + (highlightEdge.class || 'valid');
+                }
+                
+                if (showArrows) {
+                    className += ' arrow';
+                }
+                
+                const line = createSVGElement('line', {
+                    x1: from.x,
+                    y1: from.y,
+                    x2: to.x,
+                    y2: to.y,
+                    class: className,
+                    'data-from': edge.from,
+                    'data-to': edge.to
+                });
+                canvas.appendChild(line);
+            });
+            
+            // Draw nodes
+            treeData.nodes.forEach(node => {
+                const pos = positions[node.id];
+                const g = createSVGElement('g', {
+                    class: 'tree-node normal',
+                    'data-id': node.id
+                });
+                
+                if (rootNode === node.id) {
+                    g.setAttribute('class', 'tree-node root');
+                } else if (highlightNodes.includes(node.id)) {
+                    g.setAttribute('class', 'tree-node highlighted pulsing');
+                }
+                
+                const circle = createSVGElement('circle', {
+                    cx: pos.x,
+                    cy: pos.y,
+                    r: 25
+                });
+                
+                const text = createSVGElement('text', {
+                    x: pos.x,
+                    y: pos.y
+                });
+                text.textContent = node.id;
+                
+                const valueLabel = createSVGElement('text', {
+                    x: pos.x,
+                    y: pos.y + 45,
+                    class: 'value-label'
+                });
+                valueLabel.textContent = `v=${node.value}`;
+                
+                g.appendChild(circle);
+                g.appendChild(text);
+                canvas.appendChild(g);
+                canvas.appendChild(valueLabel);
+            });
+        }
+        
+        function renderScene(step) {
+            clearCanvas();
+            
+            switch(step) {
+                case 0:
+                    renderStep0();
+                    break;
+                case 1:
+                    renderStep1();
+                    break;
+                case 2:
+                    renderStep2();
+                    break;
+                case 3:
+                    renderStep3();
+                    break;
+                case 4:
+                    renderStep4();
+                    break;
+                case 5:
+                    renderStep5();
+                    break;
+                case 6:
+                    renderStep6();
+                    break;
+                case 7:
+                    renderStep7();
+                    break;
+                case 8:
+                    renderStep8();
+                    break;
+                case 9:
+                    renderStep9();
+                    break;
+                case 10:
+                    renderStep10();
+                    break;
+            }
+        }
+        
+        function renderStep0() {
+            setExplanation(`
+                <h2>场景0: 仓库网络问题</h2>
+                <div class="problem-box">
+                    <h4>问题描述：</h4>
+                    <p>在一个树状的仓库网络中，每个仓库存储一种材��，价值为 $v_i$。</p>
+                    <p>我们需要选择若干条道路（边）进行配对，使得：</p>
+                    <ul>
+                        <li>每个仓库最多被一条道路使用</li>
+                        <li>配对仓库的材料价值乘积之和最大</li>
+                    </ul>
+                    <p><strong>目标：</strong>最大化 $\\sum_{(u,v) \\in \\text{匹配}} v_u \\times v_v$</p>
+                </div>
+                <p>下图展示了一个包含7个仓库的树状网络，每个仓库下方标注了其材料价值。</p>
+            `);
+            
+            drawTree();
+        }
+        
+        function renderStep1() {
+            setExplanation(`
+                <h2>场景1: 展示一个合法的配对方案</h2>
+                <p>我们选择边 (2,4)、(3,6) 和 (3,7) 进行配对。</p>
+                <p>计算总价值：</p>
+                <ul>
+                    <li>边 (2,4): $v_2 \\times v_4 = 5 \\times 2 = 10$</li>
+                    <li>边 (3,6): $v_3 \\times v_6 = 4 \\times 3 = 12$</li>
+                </ul>
+                <p><strong>总和：</strong> $10 + 12 = 22$</p>
+                <p>注意：每个仓库最多被使用一次，所以这是一个<strong>合法</strong>的配对方案。</p>
+            `);
+            
+            const validEdges = [
+                { from: 2, to: 4, class: 'valid' },
+                { from: 3, to: 6, class: 'valid' }
+            ];
+            
+            drawTree({ highlightEdges: validEdges, highlightNodes: [2, 3, 4, 6] });
+        }
+        
+        function renderStep2() {
+            setExplanation(`
+                <h2>场景2: 展示一个不合法的配对方案</h2>
+                <p>如果我们尝试选择边 (1,2)、(2,4) 和 (2,5)，会发生什么？</p>
+                <p><strong>问题：</strong>仓库2被使用了<strong>三次</strong>（与1、4、5连接），这违反了"每个仓库最多被使用一次"的规则。</p>
+                <p>暴力搜索所有可能的合法配对方案，计算量会随着仓库数量呈指数增长。</p>
+                <p>但是，我们可以利用<strong>树形结构</strong>的特点，使用<strong>动态规划</strong>高效求解！</p>
+            `);
+            
+            const invalidEdges = [
+                { from: 1, to: 2, class: 'invalid' },
+                { from: 2, to: 4, class: 'invalid' },
+                { from: 2, to: 5, class: 'invalid' }
+            ];
+            
+            drawTree({ highlightEdges: invalidEdges });
+            
+            // Draw X mark on node 2
+            setTimeout(() => {
+                const pos = positions[2];
+                const xMark = createSVGElement('text', {
+                    x: pos.x,
+                    y: pos.y,
+                    class: 'x-mark'
+                });
+                xMark.textContent = '✗';
+                canvas.appendChild(xMark);
+            }, 300);
+        }
+        
+        function renderStep3() {
+            setExplanation(`
+                <h2>场景3: 建立根节点</h2>
+                <p>为了系统性地计算，我们首先选择一个节点作为<strong>根节点</strong>（这里选择节点1）。</p>
+                <p>将无向树转换为有向树，所有边从父节点指向子节点。</p>
+                <p>这样，我们就可以<strong>自底向上</strong>地进行动态规划计算。</p>
+            `);
+            
+            drawTree({ rootNode: 1, showArrows: true });
+        }
+        
+        function renderStep4() {
+            setExplanation(`
+                <h2>场景4: 定义DP状态</h2>
+                <p>对于每个节点 $u$，我们定义两种状态：</p>
+                <ul>
+                    <li><strong>$dp[u][0]$</strong>: 在以 $u$ 为根的子树中，当 $u$ <strong>不与任何子节点配对</strong>时的最大价值总和</li>
+                    <li><strong>$dp[u][1]$</strong>: 在以 $u$ 为根的子树中，当 $u$ <strong>与它的某一个子节点配对</strong>时的最大价值总和</li>
+                </ul>
+                <p>通过这两个状态，我们可以递归地计算出整棵树的最优解。</p>
+            `);
+            
+            drawTree({ rootNode: 1, showArrows: true, highlightNodes: [2] });
+            
+            // Draw DP state boxes for node 2
+            setTimeout(() => {
+                const pos = positions[2];
+                
+                // Box for dp[2][0]
+                const box0 = createSVGElement('rect', {
+                    x: pos.x - 80,
+                    y: pos.y - 80,
+                    width: 70,
+                    height: 40,
+                    class: 'dp-state-box'
+                });
+                canvas.appendChild(box0);
+                
+                const text0 = createSVGElement('text', {
+                    x: pos.x - 45,
+                    y: pos.y - 55,
+                    class: 'dp-state-text'
+                });
+                text0.textContent = 'dp[2][0]';
+                canvas.appendChild(text0);
+                
+                // Box for dp[2][1]
+                const box1 = createSVGElement('rect', {
+                    x: pos.x + 10,
+                    y: pos.y - 80,
+                    width: 70,
+                    height: 40,
+                    class: 'dp-state-box'
+                });
+                canvas.appendChild(box1);
+                
+                const text1 = createSVGElement('text', {
+                    x: pos.x + 45,
+                    y: pos.y - 55,
+                    class: 'dp-state-text'
+                });
+                text1.textContent = 'dp[2][1]';
+                canvas.appendChild(text1);
+            }, 400);
+        }
+        
+        function renderStep5() {
+            setExplanation(`
+                <h2>场景5: 从叶子节点开始</h2>
+                <p>动态规划计算从<strong>叶子节点</strong>开始，自底向上进行。</p>
+                <p>对于叶子节点（节点4、5、6、7），由于它们没有子节点：</p>
+                <ul>
+                    <li>$dp[\\text{leaf}][0] = 0$ （不配对，无贡献）</li>
+                    <li>$dp[\\text{leaf}][1] = 0$ （无子节点可配对）</li>
+                </ul>
+            `);
+            
+            drawTree({ rootNode: 1, showArrows: true, highlightNodes: [4, 5, 6, 7] });
+            
+            // Initialize DP values for leaves
+            dpValues = {
+                4: [0, 0],
+                5: [0, 0],
+                6: [0, 0],
+                7: [0, 0]
+            };
+            
+            // Display DP values for leaves
+            setTimeout(() => {
+                [4, 5, 6, 7].forEach(nodeId => {
+                    const pos = positions[nodeId];
+                    const dpText = createSVGElement('text', {
+                        x: pos.x + 40,
+                        y: pos.y - 10,
+                        class: 'dp-state-text'
+                    });
+                    dpText.textContent = `[0,0]`;
+                    canvas.appendChild(dpText);
+                });
+            }, 400);
+        }
+        
+        function renderStep6() {
+            setExplanation(`
+                <h2>场景6: 计算节点2的DP值</h2>
+                <p>节点2有两个子节点：4和5。</p>
+                <p><strong>计算 $dp[2][0]$</strong>（节点2不配对）：</p>
+                <p>$dp[2][0] = \\sum_{\\text{child } v} \\max(dp[v][0], dp[v][1])$</p>
+                <p>$= \\max(0, 0) + \\max(0, 0) = 0$</p>
+                
+                <p><strong>计算 $dp[2][1]$</strong>（节点2与某子节点配对）：</p>
+                <p>尝试与节点4配对：$5 \\times 2 + 0 + \\max(0, 0) = 10$</p>
+                <p>尝试与节点5配对：$5 \\times 6 + 0 + \\max(0, 0) = 30$</p>
+                <p>$dp[2][1] = \\max(10, 30) = 30$（选择与节点5配对）</p>
+            `);
+            
+            drawTree({ rootNode: 1, showArrows: true, highlightNodes: [2] });
+            
+            dpValues[2] = [0, 30];
+            
+            setTimeout(() => {
+                const pos = positions[2];
+                const dpText = createSVGElement('text', {
+                    x: pos.x + 50,
+                    y: pos.y - 10,
+                    class: 'dp-state-text',
+                    style: 'fill: #e74c3c; font-size: 16px; font-weight: 800;'
+                });
+                dpText.textContent = `[0,30]`;
+                canvas.appendChild(dpText);
+                
+                // Highlight edge 2-5
+                const edge = canvas.querySelector('line[data-from="2"][data-to="5"]');
+                if (edge) {
+                    edge.setAttribute('class', 'tree-edge selected arrow');
+                }
+            }, 600);
+        }
+        
+        function renderStep7() {
+            setExplanation(`
+                <h2>场景7: 计算节点3的DP值</h2>
+                <p>节点3有两个子节点：6和7。</p>
+                <p><strong>计算 $dp[3][0]$</strong>：</p>
+                <p>$dp[3][0] = \\max(0, 0) + \\max(0, 0) = 0$</p>
+                
+                <p><strong>计算 $dp[3][1]$</strong>：</p>
+                <p>尝试与节点6配对：$4 \\times 3 + 0 + \\max(0, 0) = 12$</p>
+                <p>尝试与节点7配对：$4 \\times 4 + 0 + \\max(0, 0) = 16$</p>
+                <p>$dp[3][1] = \\max(12, 16) = 16$（选择与节点7配对）</p>
+            `);
+            
+            drawTree({ rootNode: 1, showArrows: true, highlightNodes: [3] });
+            
+            dpValues[3] = [0, 16];
+            
+            setTimeout(() => {
+                // Show dp values for node 2
+                const pos2 = positions[2];
+                const dpText2 = createSVGElement('text', {
+                    x: pos2.x + 50,
+                    y: pos2.y - 10,
+                    class: 'dp-state-text'
+                });
+                dpText2.textContent = `[0,30]`;
+                canvas.appendChild(dpText2);
+                
+                // Show dp values for node 3
+                const pos3 = positions[3];
+                const dpText3 = createSVGElement('text', {
+                    x: pos3.x + 50,
+                    y: pos3.y - 10,
+                    class: 'dp-state-text',
+                    style: 'fill: #e74c3c; font-size: 16px; font-weight: 800;'
+                });
+                dpText3.textContent = `[0,16]`;
+                canvas.appendChild(dpText3);
+                
+                // Highlight edge 3-7
+                const edge = canvas.querySelector('line[data-from="3"][data-to="7"]');
+                if (edge) {
+                    edge.setAttribute('class', 'tree-edge selected arrow');
+                }
+            }, 600);
+        }
+        
+        function renderStep8() {
+            setExplanation(`
+                <h2>场景8: 计算根节点1的DP值</h2>
+                <p>节点1有两个子节点：2和3。</p>
+                <p><strong>计算 $dp[1][0]$</strong>：</p>
+                <p>$dp[1][0] = \\max(0, 30) + \\max(0, 16) = 30 + 16 = 46$</p>
+                
+                <p><strong>计算 $dp[1][1]$</strong>：</p>
+                <p>尝试与节点2配对：$3 \\times 5 + 0 + \\max(0, 16) = 15 + 16 = 31$</p>
+                <p>尝试与节点3配对：$3 \\times 4 + 0 + \\max(0, 30) = 12 + 30 = 42$</p>
+                <p>$dp[1][1] = \\max(31, 42) = 42$</p>
+                <p><strong>最终答案：</strong>$\max(dp[1][0], dp[1][1]) = \max(46, 42) = 46$</p>
+            `);
+            
+            drawTree({ rootNode: 1, showArrows: true, highlightNodes: [1] });
+            
+            dpValues[1] = [46, 42];
+            
+            setTimeout(() => {
+                // Show all dp values
+                [[2, [0, 30]], [3, [0, 16]]].forEach(([nodeId, values]) => {
+                    const pos = positions[nodeId];
+                    const dpText = createSVGElement('text', {
+                        x: pos.x + 50,
+                        y: pos.y - 10,
+                        class: 'dp-state-text'
+                    });
+                    dpText.textContent = `[${values[0]},${values[1]}]`;
+                    canvas.appendChild(dpText);
+                });
+                
+                // Show root dp value
+                const pos1 = positions[1];
+                const dpText1 = createSVGElement('text', {
+                    x: pos1.x + 50,
+                    y: pos1.y - 10,
+                    class: 'dp-state-text',
+                    style: 'fill: #ffd700; font-size: 18px; font-weight: 900;'
+                });
+                dpText1.textContent = `[46,42]`;
+                canvas.appendChild(dpText1);
+            }, 600);
+        }
+        
+        function renderStep9() {
+            setExplanation(`
+                <h2>场景9: 最优配对方案</h2>
+                <p>通过回溯DP状态，我们可以找到最优配对方案。</p>
+                <p>由于 $dp[1][0] = 46 > dp[1][1] = 42$，根节点1不配对。</p>
+                <p>对于节点2：选择 $dp[2][1] = 30$，与节点5配对。</p>
+                <p>对于节点3：选择 $dp[3][1] = 16$，与节点7配对。</p>
+                
+                <p><strong>最优配对边：</strong>(2,5) 和 (3,7)</p>
+                <p><strong>总价值：</strong>$5 \\times 6 + 4 \\times 4 = 30 + 16 = 46$</p>
+            `);
+            
+            const optimalEdges = [
+                { from: 2, to: 5, class: 'selected' },
+                { from: 3, to: 7, class: 'selected' }
+            ];
+            
+            drawTree({ 
+                rootNode: 1, 
+                showArrows: false, 
+                highlightEdges: optimalEdges,
+                highlightNodes: [2, 3, 5, 7]
+            });
+        }
+        
+        function renderStep10() {
+            setExplanation(`
+                <h2>场景10: 算法实现</h2>
+                <p>该算法使用深度优先搜索（DFS）自底向上计算DP值。</p>
+                <p><strong>时间复杂度：</strong>$O(N^2)$，其中 $N$ 是节点数量。</p>
+                <p><strong>空间复杂度：</strong>$O(N)$。</p>
+            `);
+            
+            const codeHTML = `
+<div class="code-box">
+<span class="cm">// 树形DP求解最大权重匹配</span>
+<span class="ty">void</span> <span class="fn">dfs</span>(<span class="ty">int</span> u, <span class="ty">int</span> parent) {
+    dp[u][<span class="num">0</span>] = <span class="num">0</span>;
+    dp[u][<span class="num">1</span>] = <span class="num">0</span>;
+    
+    <span class="cm">// 遍历所有子节点</span>
+    <span class="kw">for</span> (<span class="ty">int</span> v : children[u]) {
+        <span class="kw">if</span> (v == parent) <span class="kw">continue</span>;
+        
+        <span class="fn">dfs</span>(v, u);  <span class="cm">// 递归计算子节点</span>
+        
+        <span class="cm">// dp[u][0]: u不配对</span>
+        dp[u][<span class="num">0</span>] += max(dp[v][<span class="num">0</span>], dp[v][<span class="num">1</span>]);
+    }
+    
+    <span class="cm">// dp[u][1]: u与某个子节点配对</span>
+    <span class="kw">for</span> (<span class="ty">int</span> v : children[u]) {
+        <span class="kw">if</span> (v == parent) <span class="kw">continue</span>;
+        
+        <span class="cm">// 尝试与子节点v配对的收益</span>
+        <span class="ty">long long</span> gain = value[u] * value[v] + dp[v][<span class="num">0</span>];
+        
+        <span class="cm">// 其他子节点取最优</span>
+        <span class="ty">long long</span> others = dp[u][<span class="num">0</span>] - max(dp[v][<span class="num">0</span>], dp[v][<span class="num">1</span>]);
+        
+        dp[u][<span class="num">1</span>] = max(dp[u][<span class="num">1</span>], gain + others);
+    }
+}
+
+<span class="cm">// 主函数</span>
+<span class="ty">long long</span> <span class="fn">solve</span>() {
+    <span class="fn">dfs</span>(<span class="num">1</span>, <span class="num">-1</span>);  <span class="cm">// 从根节点1开始DFS</span>
+    <span class="kw">return</span> max(dp[<span class="num">1</span>][<span class="num">0</span>], dp[<span class="num">1</span>][<span class="num">1</span>]);
+}
+</div>`;
+            
+            canvas.innerHTML = canvas.querySelector('defs').outerHTML;
+            
+            const foreignObject = createSVGElement('foreignObject', {
+                x: 20,
+                y: 20,
+                width: 760,
+                height: 560
+            });
+            
+            const div = document.createElement('div');
+            div.className = 'fade-in';
+            div.innerHTML = codeHTML;
+            
+            foreignObject.appendChild(div);
+            canvas.appendChild(foreignObject);
+        }
+    </script>
+</body>
+</html>
