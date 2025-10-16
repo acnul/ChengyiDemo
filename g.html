@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>合肥工业大学程艺小组演示——G题（三维最短路径）</title>
+
+  <!-- KaTeX CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <!-- KaTeX JS -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --gap: 16px;
+      --panel-radius: 12px;
+      --brand-1: #667eea;
+      --brand-2: #764ba2;
+      --text-1: #334155;
+      --muted-1: #e9ecef;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html, body { height: 100%; }
+    body{
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#333;
+      padding: 10px;
+      overflow: hidden;
+    }
+    .container{
+      height: calc(100vh - 20px);
+      background:#fff;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      display:flex;
+      flex-direction:column;
+      overflow: hidden;
+    }
+    header{
+      padding: 14px 16px;
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#fff;
+      text-align:center;
+      flex-shrink:0;
+    }
+    header h1{ font-size: clamp(18px, 2.2vw, 28px); margin-bottom:6px; text-shadow:2px 2px 4px rgba(0,0,0,.2) }
+    header h3{ font-size: clamp(12px, 1.1vw, 16px); font-weight:300; opacity:.95 }
+
+    /* 主体：左右布局 */
+    .main{
+      flex:1;
+      display:grid;
+      grid-template-columns: minmax(520px, 2fr) minmax(320px, 1fr);
+      gap: var(--gap);
+      padding: var(--gap);
+      overflow: hidden;
+    }
+    @media (max-width: 1024px){
+      .main{ grid-template-columns: 1fr; }
+    }
+
+    /* 左侧3D舞台 */
+    .stage{
+      border: 3px solid #e0e0e0;
+      border-radius: var(--panel-radius);
+      background:#2a2a2a;
+      position: relative;
+      overflow: hidden;
+      min-height: clamp(440px, 60vh, 820px);
+    }
+    #canvas3d{
+      width:100%;
+      height:100%;
+      display:block;
+      background: #2a2a2a;
+    }
+
+    /* 右侧讲解栏 */
+    .info{
+      background:#f8f9fa;
+      border-radius: var(--panel-radius);
+      border: 2px solid var(--muted-1);
+      padding: clamp(12px, 1.8vw, 18px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 240px;
+      max-height: 100%;
+    }
+    .info h2{ color: var(--brand-1); margin-bottom: 10px; font-size: clamp(16px, 1.6vw, 22px) }
+    .info h3{ color: var(--brand-2); margin-top: 15px; margin-bottom: 10px; font-size: clamp(14px, 1.3vw, 18px) }
+    .info p{ line-height: 1.8; font-size: clamp(13px, 1.1vw, 16px); margin-bottom: 8px }
+    .info ul{ margin-left: 20px; margin-bottom: 12px }
+    .info li{ line-height: 1.8; margin-bottom: 8px }
+    .info code{ background:#eef2ff; padding:2px 6px; border-radius:4px; color:#7c3aed; font-family: 'Courier New', monospace }
+    .problem-box{
+      border: 2px solid var(--brand-1);
+      border-radius: 10px;
+      background: #fff;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: clamp(12px, 1vw, 15px);
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .controls{
+      padding: 10px 14px;
+      background:#f8f9fa;
+      display:flex; justify-content:center; gap: 14px;
+      flex-shrink:0;
+    }
+    .btn{
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#fff; border:none;
+      padding: 10px 28px;
+      font-size: clamp(13px,1.1vw,16px);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all .22s ease;
+      box-shadow: 0 4px 14px rgba(102,126,234,.4);
+      font-weight: 600;
+    }
+    .btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 6px 18px rgba(102,126,234,.55); }
+    .btn:disabled{ background:#cbd5e1; cursor:not-allowed; box-shadow:none; opacity:.85; }
+    .btn.prev{ background: linear-gradient(135deg, #718096 0%, #4a5568 100%) }
+
+    /* 代码显示 */
+    .code-container{
+      background:#282c34;
+      border-radius: 10px;
+      overflow: auto;
+      max-height: 600px;
+      margin: 10px 0;
+    }
+    .code-container::-webkit-scrollbar{
+      width: 10px;
+      height: 10px;
+    }
+    .code-container::-webkit-scrollbar-track{
+      background: #1e2127;
+    }
+    .code-container::-webkit-scrollbar-thumb{
+      background: #4b5263;
+      border-radius: 5px;
+    }
+    .code-block{
+      color: #abb2bf;
+      padding: 20px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+      line-height: 1.6;
+      white-space: pre;
+    }
+    .code-block .keyword{ color: #c678dd }
+    .code-block .string{ color: #98c379 }
+    .code-block .comment{ color: #5c6370; font-style: italic }
+    .code-block .function{ color: #61afef }
+    .code-block .number{ color: #d19a66 }
+    .code-block .type{ color: #e5c07b }
+
+    /* 入场 */
+    .fade-in{ animation: fadeIn .45s ease-out }
+    @keyframes fadeIn{ from{ opacity:0; transform: translateY(8px) } to{ opacity:1; transform:none } }
+
+    .highlight{ background: #fff3cd; padding: 4px 8px; border-radius: 4px; font-weight: 600 }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>合肥工业大学程艺小组演示——G题（动物保护区三维路径规划）</h1>
+      <h3>组员: 李昊 周骏浩 叶豪杰 姚睿</h3>
+    </header>
+
+    <div class="main">
+      <!-- 左：3D舞台 -->
+      <div class="stage">
+        <canvas id="canvas3d"></canvas>
+      </div>
+
+      <!-- 右：讲解 -->
+      <div class="info">
+        <div id="info-content"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn prev" id="btn-prev" disabled>上一步</button>
+      <button class="btn" id="btn-next">下一步</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // 使全局可访问
+    window.THREE = THREE;
+    window.OrbitControls = OrbitControls;
+
+    // ========== 全局参数与状态 ==========
+    let scene = 0;
+    const lastScene = 8;
+
+    // 输入数据（示例）- 调整坐标使用y作为高度
+    const A = { x: 0, y: 25, z: 0 };
+    const B = { x: 25, y: 0, z: 0 };
+    const C = { x: 10, y: 10, z: 0 };
+    const R = 10;
+
+    // DOM 引用
+    const canvas3d = document.getElementById('canvas3d');
+    const infoBox = document.getElementById('info-content');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+
+    // Three.js 对象
+    let threeScene, camera, renderer, controls;
+    let pointA, pointB, pointC, sphere;
+    let directLine, perpendicularLine, footP;
+    let tangentLine1, tangentLine2, arcCurve;
+    let labelA, labelB, labelC, labelT1, labelT2, labelP;
+
+    // 计算结果
+    let distAB, distAC, distBC, distCtoSegment, t, P;
+    let needDetour = false;
+    let tangentLen_AT1, tangentLen_BT2, arcLength, totalLength;
+    let angleACB, angleACT1, angleBCT2, arcAngle;
+    let T1, T2;
+
+    // KaTeX
+    let katexReady = false;
+    function waitKatex(){
+      return new Promise(res=>{
+        if (window.renderMathInElement){ katexReady = true; res(); }
+        else setTimeout(()=>waitKatex().then(res), 100);
+      });
+    }
+
+    // ========== 工具函数 ==========
+    function setInfo(html){
+      infoBox.innerHTML = html;
+      if (katexReady && window.renderMathInElement){
+        renderMathInElement(infoBox, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // 向量运算
+    function vecSub(v1, v2){ return { x: v1.x - v2.x, y: v1.y - v2.y, z: v1.z - v2.z }; }
+    function dot(v1, v2){ return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; }
+    function cross(v1, v2){ 
+      return { 
+        x: v1.y * v2.z - v1.z * v2.y, 
+        y: v1.z * v2.x - v1.x * v2.z, 
+        z: v1.x * v2.y - v1.y * v2.x 
+      }; 
+    }
+    function normSq(v){ return v.x * v.x + v.y * v.y + v.z * v.z; }
+    function norm(v){ return Math.sqrt(normSq(v)); }
+    function dist(p1, p2){ return norm(vecSub(p1, p2)); }
+
+    // ========== 初始化 Three.js ==========
+    function initThree(){
+      // 场景
+      threeScene = new THREE.Scene();
+      threeScene.background = new THREE.Color(0x2a2a2a);
+
+      // 相机
+      const aspect = canvas3d.clientWidth / canvas3d.clientHeight;
+      camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
+      camera.position.set(35, 30, 35);
+      camera.lookAt(6, 6, 0);
+
+      // 渲染器
+      renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true });
+      renderer.setSize(canvas3d.clientWidth, canvas3d.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      // 轨道控制器
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.target.set(6, 6, 0);
+      controls.update();
+
+      // 坐标轴辅助（更大）
+      const axesHelper = new THREE.AxesHelper(25);
+      threeScene.add(axesHelper);
+
+      // 网格辅助
+      const gridHelper = new THREE.GridHelper(50, 50, 0x555555, 0x333333);
+      threeScene.add(gridHelper);
+
+      // 光源
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      threeScene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+      directionalLight.position.set(20, 30, 20);
+      threeScene.add(directionalLight);
+      
+      // 添加点光源增强可见性
+      const pointLight = new THREE.PointLight(0xffffff, 0.6);
+      pointLight.position.set(-20, 20, 20);
+      threeScene.add(pointLight);
+
+      // 窗口调整
+      window.addEventListener('resize', onWindowResize, false);
+      
+      // 渲染循环
+      animate();
+      
+      console.log('Three.js initialized successfully');
+    }
+
+    function onWindowResize(){
+      camera.aspect = canvas3d.clientWidth / canvas3d.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(canvas3d.clientWidth, canvas3d.clientHeight);
+    }
+
+    function animate(){
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(threeScene, camera);
+    }
+
+    // ========== 创建3D对象 ==========
+    function createPoint(pos, color, label){
+      const geometry = new THREE.SphereGeometry(0.8, 16, 16);
+      const material = new THREE.MeshPhongMaterial({ 
+        color: color,
+        emissive: color,
+        emissiveIntensity: 0.3
+      });
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.set(pos.x, pos.y, pos.z);
+      threeScene.add(sphere);
+
+      // 文字标签（使用 Sprite）
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'white';
+      ctx.font = 'Bold 80px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, 64, 64);
+      
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+      const sprite = new THREE.Sprite(spriteMaterial);
+      sprite.scale.set(3, 3, 1);
+      sprite.position.set(pos.x, pos.y + 2, pos.z);
+      threeScene.add(sprite);
+
+      return { mesh: sphere, label: sprite };
+    }
+
+    function createSphere(center, radius, color, opacity){
+      const geometry = new THREE.SphereGeometry(radius, 32, 32);
+      const material = new THREE.MeshPhongMaterial({ 
+        color: color, 
+        transparent: true, 
+        opacity: opacity,
+        side: THREE.DoubleSide
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(center.x, center.y, center.z);
+      threeScene.add(mesh);
+      return mesh;
+    }
+
+    function createLine(p1, p2, color, linewidth, dashed){
+      const material = dashed 
+        ? new THREE.LineDashedMaterial({ 
+            color: color, 
+            linewidth: linewidth, 
+            dashSize: 1, 
+            gapSize: 0.5,
+            transparent: true,
+            opacity: 0.8
+          })
+        : new THREE.LineBasicMaterial({ 
+            color: color, 
+            linewidth: linewidth,
+            transparent: true,
+            opacity: 0.9
+          });
+      
+      const geometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(p1.x, p1.y, p1.z),
+        new THREE.Vector3(p2.x, p2.y, p2.z)
+      ]);
+      
+      const line = new THREE.Line(geometry, material);
+      if(dashed) line.computeLineDistances();
+      threeScene.add(line);
+      return line;
+    }
+
+    function createArc(center, t1, t2, radius, color){
+      // 在球面上从T1到T2绘制弧线
+      // 使用球面插值 (SLERP) 在球面上生成平滑的弧
+      
+      const geom = new THREE.BufferGeometry();
+      const positions = [];
+      
+      // 从center指向t1和t2的向量
+      const v1 = vecSub(t1, center);
+      const v2 = vecSub(t2, center);
+      
+      // 归一化
+      const len1 = norm(v1);
+      const len2 = norm(v2);
+      const dir1 = { x: v1.x/len1, y: v1.y/len1, z: v1.z/len1 };
+      const dir2 = { x: v2.x/len2, y: v2.y/len2, z: v2.z/len2 };
+      
+      // 计算两个方向之间的夹角
+      const cosTheta = dot(dir1, dir2);
+      const theta = Math.acos(Math.max(-1, Math.min(1, cosTheta))); // 夹角
+      
+      // 生成弧线上的点 (使用球面线性插值 SLERP)
+      const numPoints = 60;
+      for(let i = 0; i <= numPoints; i++){
+        const t = i / numPoints;
+        
+        // SLERP 公式: v(t) = (sin((1-t)*θ)/sin(θ)) * v1 + (sin(t*θ)/sin(θ)) * v2
+        let dir;
+        if(Math.abs(theta) < 0.001){
+          // 如果角度很小,使用线性插值
+          dir = {
+            x: (1-t) * dir1.x + t * dir2.x,
+            y: (1-t) * dir1.y + t * dir2.y,
+            z: (1-t) * dir1.z + t * dir2.z
+          };
+        } else {
+          const sinTheta = Math.sin(theta);
+          const w1 = Math.sin((1-t) * theta) / sinTheta;
+          const w2 = Math.sin(t * theta) / sinTheta;
+          dir = {
+            x: w1 * dir1.x + w2 * dir2.x,
+            y: w1 * dir1.y + w2 * dir2.y,
+            z: w1 * dir1.z + w2 * dir2.z
+          };
+        }
+        
+        // 归一化并缩放到半径R
+        const dirLen = Math.sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+        const px = center.x + radius * dir.x / dirLen;
+        const py = center.y + radius * dir.y / dirLen;
+        const pz = center.z + radius * dir.z / dirLen;
+        
+        positions.push(px, py, pz);
+      }
+      
+      geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      const material = new THREE.LineBasicMaterial({ color: color, linewidth: 4 });
+      const arc = new THREE.Line(geom, material);
+      threeScene.add(arc);
+      return arc;
+    }
+
+    // ========== 计算逻辑 ==========
+    function computeGeometry(){
+      // 基础距离
+      distAB = dist(A, B);
+      distAC = dist(A, C);
+      distBC = dist(B, C);
+
+      // 计算垂足参数 t
+      const AB = vecSub(B, A);
+      const AC = vecSub(C, A);
+      t = dot(AC, AB) / normSq(AB);
+
+      // 计算垂足 P 和 C 到线段的距离
+      if(t >= 0 && t <= 1){
+        P = {
+          x: A.x + t * AB.x,
+          y: A.y + t * AB.y,
+          z: A.z + t * AB.z
+        };
+        distCtoSegment = dist(C, P);
+      } else if(t < 0){
+        P = A;
+        distCtoSegment = distAC;
+      } else {
+        P = B;
+        distCtoSegment = distBC;
+      }
+
+      // 判断是否需要绕行
+      needDetour = distCtoSegment < R;
+
+      if(!needDetour){
+        totalLength = distAB;
+      } else {
+        // 计算切线长度
+        tangentLen_AT1 = Math.sqrt(distAC * distAC - R * R);
+        tangentLen_BT2 = Math.sqrt(distBC * distBC - R * R);
+
+        // 计算角度
+        const CA = vecSub(A, C);
+        const CB = vecSub(B, C);
+        angleACB = Math.acos(dot(CA, CB) / (distAC * distBC));
+        angleACT1 = Math.acos(R / distAC);
+        angleBCT2 = Math.acos(R / distBC);
+        arcAngle = angleACB - angleACT1 - angleBCT2;
+
+        // 计算弧长
+        arcLength = R * arcAngle;
+
+        // 总长度
+        totalLength = tangentLen_AT1 + tangentLen_BT2 + arcLength;
+
+        // 计算切点 T1 和 T2 (3D空间中的切点)
+        // 关键几何关系:
+        // - T1在球面上: |CT1| = R
+        // - CT1⊥AT1 (切线垂直于半径)
+        // - ∠ACT1 = arccos(R/|AC|)
+        
+        // 方法:T1在从C出发,朝向A方向偏转∠ACT1角度后的射线上,距C为R
+        // 在包含A、C、B的平面内(简化处理)
+        
+        // 从C指向A的单位向量
+        const CA_vec = vecSub(A, C);
+        const CB_vec = vecSub(B, C);
+        const CA_len = distAC;
+        const CB_len = distBC;
+        const CA_unit = { x: CA_vec.x/CA_len, y: CA_vec.y/CA_len, z: CA_vec.z/CA_len };
+        const CB_unit = { x: CB_vec.x/CB_len, y: CB_vec.y/CB_len, z: CB_vec.z/CB_len };
+        
+        // cos(∠ACT1) = R / |AC|, sin(∠ACT1) = |AT1| / |AC|
+        const cosACT1 = R / CA_len;
+        const sinACT1 = tangentLen_AT1 / CA_len;
+        
+        const cosBCT2 = R / CB_len;
+        const sinBCT2 = tangentLen_BT2 / CB_len;
+        
+        // T1 = C + R * (cosACT1 * CA_unit + sinACT1 * 垂直方向)
+        // 简化:假设在xz平面或考虑完整3D
+        // 使用叉积找垂直方向(在ACB平面内)
+        const normal = cross(CA_vec, CB_vec);
+        const normalLen = Math.sqrt(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
+        
+        if(normalLen > 0.001){
+          const normal_unit = { x: normal.x/normalLen, y: normal.y/normalLen, z: normal.z/normalLen };
+          
+          // 垂直于CA且在ACB平面内的向量
+          const perp1 = cross(normal_unit, CA_unit);
+          const perp2 = cross(normal_unit, CB_unit);
+          
+          // T1 = C + R * (cos*CA_unit + sin*perp1)
+          T1 = {
+            x: C.x + R * (cosACT1 * CA_unit.x + sinACT1 * perp1.x),
+            y: C.y + R * (cosACT1 * CA_unit.y + sinACT1 * perp1.y),
+            z: C.z + R * (cosACT1 * CA_unit.z + sinACT1 * perp1.z)
+          };
+          
+          T2 = {
+            x: C.x + R * (cosBCT2 * CB_unit.x + sinBCT2 * perp2.x),
+            y: C.y + R * (cosBCT2 * CB_unit.y + sinBCT2 * perp2.y),
+            z: C.z + R * (cosBCT2 * CB_unit.z + sinBCT2 * perp2.z)
+          };
+        } else {
+          // 退化情况:A、C、B共线
+          T1 = { x: C.x + R * CA_unit.x, y: C.y + R * CA_unit.y, z: C.z + R * CA_unit.z };
+          T2 = { x: C.x + R * CB_unit.x, y: C.y + R * CB_unit.y, z: C.z + R * CB_unit.z };
+        }
+      }
+    }
+
+    // ========== 清除对象 ==========
+    function clearDynamicObjects(){
+      if(directLine){ threeScene.remove(directLine); directLine = null; }
+      if(perpendicularLine){ threeScene.remove(perpendicularLine); perpendicularLine = null; }
+      if(footP){ threeScene.remove(footP.mesh); threeScene.remove(footP.label); footP = null; }
+      if(tangentLine1){ threeScene.remove(tangentLine1); tangentLine1 = null; }
+      if(tangentLine2){ threeScene.remove(tangentLine2); tangentLine2 = null; }
+      if(arcCurve){ threeScene.remove(arcCurve); arcCurve = null; }
+      if(labelT1){ threeScene.remove(labelT1.mesh); threeScene.remove(labelT1.label); labelT1 = null; }
+      if(labelT2){ threeScene.remove(labelT2.mesh); threeScene.remove(labelT2.label); labelT2 = null; }
+    }
+
+    // ========== 场景渲染 ==========
+    function run(){
+      clearDynamicObjects();
+      
+      btnPrev.disabled = scene === 0;
+      btnNext.disabled = scene === lastScene;
+      btnNext.textContent = scene === lastScene ? '演示完成' : '下一步';
+
+      switch(scene){
+        case 0: renderScene0(); break;
+        case 1: renderScene1(); break;
+        case 2: renderScene2(); break;
+        case 3: renderScene3(); break;
+        case 4: renderScene4(); break;
+        case 5: renderScene5(); break;
+        case 6: renderScene6(); break;
+        case 7: renderScene7(); break;
+        case 8: renderScene8(); break;
+      }
+    }
+
+    function renderScene0(){
+      setInfo(`
+        <h2>场景0：问题介绍</h2>
+        <div class="problem-box">
+<strong>G 动物保护区</strong>
+
+自然保护区需要进行无人机空中巡逻，需要找到无人机起飞点A和投送位置B之间的最短距离，
+同时避开保护装置的影响范围。保护装置可以看作为一个圆心为C点，半径为R的实心球。
+A点和B点不会在球内。
+
+<strong>输入样例：</strong>
+0 0 12    (A点坐标: x=0, y=0, z=12)
+12 0 0    (B点坐标: x=12, y=0, z=0)
+10 0 10   (C点坐标: x=10, y=0, z=10)
+10        (半径R)
+
+<strong>输出：</strong>
+A点到B的最小长度，精确到小数点后2位。
+
+<strong>本演示说明：</strong>
+为便于3D可视化，我们将y轴作为高度轴。
+原始坐标(x,y,z)转换为显示坐标(x,z,y)。
+        </div>
+        <p><strong>本演示将通过3D可视化展示求解过程。可用鼠标拖拽旋转、缩放视角。为方便演示，这里A(0,0,25),B(25,0,0)</strong></p>
+        <p style="color:#ff9900;">绿色点A、红色点B、蓝色点C。</p>
+      `);
+    }
+
+    function renderScene1(){
+      setInfo(`
+        <h2>场景1：最直接的路径</h2>
+        <p>首先，我们考虑最简单的情况：<span class="highlight">直接连接A和B的直线</span>。</p>
+        <p>如果这条直线不穿过球体，那它就是最短路径。</p>
+        <p>在3D场景中，我们用<strong>虚线</strong>表示这条"候选"路径。</p>
+      `);
+      
+      directLine = createLine(A, B, 0xffff00, 2, true);
+    }
+
+    function renderScene2(){
+      setInfo(`
+        <h2>场景2：关键判断 - 是否与障碍物相交？</h2>
+        <p>核心问题：<span class="highlight">这条直线路径是否穿过球体内部？</span></p>
+        <p>我们需要计算球心C到<strong>线段AB</strong>的最短距离 <code>d</code>，并与半径 <code>R</code> 比较。</p>
+        <h3>计算步骤：</h3>
+        <ul>
+          <li>计算向量 $\\vec{AB} = B - A$</li>
+          <li>计算向量 $\\vec{AC} = C - A$</li>
+          <li>计算投影参数：$t = \\frac{\\vec{AC} \\cdot \\vec{AB}}{|\\vec{AB}|^2}$</li>
+          <li>根据 $t$ 的值确定垂足位置 $P$</li>
+        </ul>
+        <p>在场景中，<strong>红色线段</strong>表示从C到线段AB的垂线。</p>
+      `);
+      
+      directLine = createLine(A, B, 0xffff00, 2, true);
+      perpendicularLine = createLine(C, P, 0xff0000, 2, false);
+      footP = createPoint(P, 0xff00ff, 'P');
+    }
+
+    function renderScene3(){
+      setInfo(`
+        <h2>场景3：情况一 - 路径不相交</h2>
+        <p>计算结果：</p>
+        <ul>
+          <li>投影参数 $t = ${t.toFixed(3)}$</li>
+          <li>C到线段AB的距离 $d = ${distCtoSegment.toFixed(2)}$</li>
+          <li>球体半径 $R = ${R}$</li>
+        </ul>
+        <p class="highlight">判断：$d = ${distCtoSegment.toFixed(2)} ${distCtoSegment >= R ? '\\geq' : '<'} R = ${R}$</p>
+        ${!needDetour ? `
+        <p><strong>结论：</strong>直线AB <strong>没有</strong>穿过球体，它就是最短路径！</p>
+        <p>最短距离 = $|AB| = \\sqrt{(${B.x}-${A.x})^2 + (${B.y}-${A.y})^2 + (${B.z}-${A.z})^2} = ${distAB.toFixed(2)}$</p>
+        ` : `
+        <p><strong>结论：</strong>直线AB <strong>穿过</strong>球体内部，需要绕行！</p>
+        <p>（将在下一场景展示绕行方案）</p>
+        `}
+      `);
+      
+      if(!needDetour){
+        directLine = createLine(A, B, 0x00ff00, 3, false);
+      } else {
+        directLine = createLine(A, B, 0xff0000, 2, true);
+        perpendicularLine = createLine(C, P, 0xff6666, 2, false);
+      }
+    }
+
+    function renderScene4(){
+      if(!needDetour){
+        setInfo(`<h2>场景4：已得到最短路径</h2><p>由于路径不相交，无需绕行。最短距离为 <code>${totalLength.toFixed(2)}</code>。</p>`);
+        directLine = createLine(A, B, 0x00ff00, 3, false);
+        return;
+      }
+
+      setInfo(`
+        <h2>场景4：情况二 - 路径相交，必须绕行</h2>
+        <p>由于 $d = ${distCtoSegment.toFixed(2)} < R = ${R}$，直线路径穿过了球体。</p>
+        <p>在3D场景中可以看到，<strong style="color:#ff0000">红色虚线</strong>穿过了半透明的球体。</p>
+        <p class="highlight">我们必须寻找绕行路径！</p>
+      `);
+      
+      directLine = createLine(A, B, 0xff0000, 3, true);
+    }
+
+    function renderScene5(){
+      if(!needDetour) return;
+
+      setInfo(`
+        <h2>场景5：绕行路径的构成</h2>
+        <p>最短的绕行路径由<strong>三部分</strong>组成：</p>
+        <ol>
+          <li>从A到球面的<strong>切线段</strong> AT₁（绿色）</li>
+          <li>沿球体表面的<strong>弧线</strong> T₁T₂（黄色）</li>
+          <li>从球面到B的<strong>切线段</strong> T₂B（蓝色）</li>
+        </ol>
+        <p>在3D场景中，我们高亮显示这三段路径。</p>
+      `);
+      
+      labelT1 = createPoint(T1, 0x00ff00, 'T₁');
+      labelT2 = createPoint(T2, 0x0088ff, 'T₂');
+      tangentLine1 = createLine(A, T1, 0x00ff00, 3, false);
+      tangentLine2 = createLine(T2, B, 0x0088ff, 3, false);
+      arcCurve = createArc(C, T1, T2, R, 0xffff00);
+    }
+
+    function renderScene6(){
+      if(!needDetour) return;
+
+      setInfo(`
+        <h2>场景6：计算切线段长度</h2>
+        <p>从点 A 向球心 C 作切线,切点为 T₁。因为<strong>切线垂直于半径</strong>,所以 CT₁ ⊥ AT₁。</p>
+        <p>在直角三角形 △ACT₁ 中,利用<strong>勾股定理</strong>：</p>
+        <p>$$|AT_1|^2 + |CT_1|^2 = |AC|^2$$</p>
+        <p>因为 $|CT_1| = R = ${R}$，所以：</p>
+        <p>$$|AT_1| = \\sqrt{|AC|^2 - R^2} = \\sqrt{${distAC.toFixed(2)}^2 - ${R}^2} = ${tangentLen_AT1.toFixed(2)}$$</p>
+        <p>同理，$$|BT_2| = \\sqrt{|BC|^2 - R^2} = \\sqrt{${distBC.toFixed(2)}^2 - ${R}^2} = ${tangentLen_BT2.toFixed(2)}$$</p>
+        <p><em>注意：T₁ 和 T₂ 是球面上的切点,绿色线段 AT₁ 和蓝色线段 BT₂ 分别与球面相切。</em></p>
+      `);
+      
+      labelT1 = createPoint(T1, 0x00ff00, 'T₁');
+      labelT2 = createPoint(T2, 0x0088ff, 'T₂');
+      tangentLine1 = createLine(A, T1, 0x00ff00, 3, false);
+      tangentLine2 = createLine(T2, B, 0x0088ff, 3, false);
+      
+      // 突出显示直角三角形 - 显示半径CT1和CT2
+      createLine(C, T1, 0xff0000, 2, false); // 半径 CT1 (红色)
+      createLine(C, T2, 0xff0000, 2, false); // 半径 CT2 (红色)
+      createLine(C, A, 0xff6600, 2, true); // CA (橙色虚线)
+      createLine(C, B, 0xff6600, 2, true); // CB (橙色虚线)
+    }
+
+    function renderScene7(){
+      if(!needDetour) return;
+
+      setInfo(`
+        <h2>场景7：计算弧长</h2>
+        <p>弧长公式：<code>弧长 = 半径 × 夹角（弧度）</code></p>
+        <h3>步骤：</h3>
+        <ol>
+          <li>计算 $\\angle ACB$：
+            $$\\cos(\\angle ACB) = \\frac{\\vec{CA} \\cdot \\vec{CB}}{|CA| \\times |CB|}$$
+            $$\\angle ACB = ${(angleACB * 180 / Math.PI).toFixed(2)}° = ${angleACB.toFixed(4)} \\text{ rad}$$
+          </li>
+          <li>计算 $\\angle ACT_1 = \\arccos(\\frac{R}{|AC|}) = ${(angleACT1 * 180 / Math.PI).toFixed(2)}°$</li>
+          <li>计算 $\\angle BCT_2 = \\arccos(\\frac{R}{|BC|}) = ${(angleBCT2 * 180 / Math.PI).toFixed(2)}°$</li>
+          <li>弧线夹角：$\\theta = \\angle ACB - \\angle ACT_1 - \\angle BCT_2 = ${(arcAngle * 180 / Math.PI).toFixed(2)}° = ${arcAngle.toFixed(4)} \\text{ rad}$</li>
+          <li>弧长 = $R \\times \\theta = ${R} \\times ${arcAngle.toFixed(4)} = ${arcLength.toFixed(2)}$</li>
+        </ol>
+      `);
+      
+      labelT1 = createPoint(T1, 0x00ff00, 'T₁');
+      labelT2 = createPoint(T2, 0x0088ff, 'T₂');
+      tangentLine1 = createLine(A, T1, 0x00ff00, 3, false);
+      tangentLine2 = createLine(T2, B, 0x0088ff, 3, false);
+      arcCurve = createArc(C, T1, T2, R, 0xffff00);
+      
+      // 显示角度相关的辅助线
+      createLine(C, A, 0xff9900, 2, true);
+      createLine(C, B, 0xff9900, 2, true);
+    }
+
+    function renderScene8(){
+      setInfo(`
+        <h2>场景8：最终结果与代码实现</h2>
+        ${needDetour ? `
+        <p><strong>总长度</strong> = $|AT_1| + \\text{弧长}(T_1T_2) + |T_2B|$</p>
+        <p>= $${tangentLen_AT1.toFixed(2)} + ${arcLength.toFixed(2)} + ${tangentLen_BT2.toFixed(2)}$</p>
+        <p class="highlight">= <strong>${totalLength.toFixed(2)}</strong></p>
+        ` : `
+        <p class="highlight">最短距离 = <strong>${totalLength.toFixed(2)}</strong></p>
+        `}
+        
+        <h3>核心C++代码：</h3>
+        <div class="code-container">
+          <pre class="code-block"><span class="comment">// 计算点C到线段AB的距离</span>
+<span class="type">Point</span> ab = b - a;
+<span class="type">Point</span> ac = c - a;
+<span class="type">double</span> t = <span class="function">dot</span>(ac, ab) / <span class="function">norm_sq</span>(ab);
+
+<span class="type">double</span> dist_c_to_segment;
+<span class="keyword">if</span> (t >= <span class="number">0</span> && t <= <span class="number">1</span>) {
+  dist_c_to_segment = <span class="function">sqrt</span>(<span class="function">norm_sq</span>(ac) - t * t * <span class="function">norm_sq</span>(ab));
+} <span class="keyword">else if</span> (t < <span class="number">0</span>) {
+  dist_c_to_segment = <span class="function">dist</span>(c, a);
+} <span class="keyword">else</span> {
+  dist_c_to_segment = <span class="function">dist</span>(c, b);
+}
+
+<span class="comment">// 判断是否需要绕行</span>
+<span class="keyword">if</span> (dist_c_to_segment >= r) {
+  result = <span class="function">dist</span>(a, b);
+} <span class="keyword">else</span> {
+  <span class="comment">// 计算绕行路径</span>
+  <span class="type">double</span> len_a_t1 = <span class="function">sqrt</span>(dist_ac * dist_ac - r * r);
+  <span class="type">double</span> len_b_t2 = <span class="function">sqrt</span>(dist_bc * dist_bc - r * r);
+  
+  <span class="type">double</span> angle_acb = <span class="function">acos</span>(<span class="function">dot</span>(ca, cb) / (dist_ac * dist_bc));
+  <span class="type">double</span> angle_act1 = <span class="function">acos</span>(r / dist_ac);
+  <span class="type">double</span> angle_bct2 = <span class="function">acos</span>(r / dist_bc);
+  
+  <span class="type">double</span> arc_len = r * (angle_acb - angle_act1 - angle_bct2);
+  result = len_a_t1 + len_b_t2 + arc_len;
+}</pre>
+        </div>
+      `);
+      
+      if(needDetour){
+        labelT1 = createPoint(T1, 0x00ff00, 'T₁');
+        labelT2 = createPoint(T2, 0x0088ff, 'T₂');
+        tangentLine1 = createLine(A, T1, 0x00ff00, 4, false);
+        tangentLine2 = createLine(T2, B, 0x0088ff, 4, false);
+        arcCurve = createArc(C, T1, T2, R, 0xffff00);
+      } else {
+        directLine = createLine(A, B, 0x00ff00, 4, false);
+      }
+    }
+
+    // ========== 交互 ==========
+    btnPrev.addEventListener('click', ()=>{ if (scene > 0){ scene--; run(); } });
+    btnNext.addEventListener('click', ()=>{ if (scene < lastScene){ scene++; run(); } });
+
+    // ========== 初始化 ==========
+    waitKatex().then(()=>{
+      console.log('KaTeX ready, initializing Three.js...');
+      initThree();
+      
+      console.log('Computing geometry...');
+      computeGeometry();
+      console.log('Geometry computed:', {
+        distAB: distAB.toFixed(2),
+        distAC: distAC.toFixed(2),
+        distBC: distBC.toFixed(2),
+        distCtoSegment: distCtoSegment.toFixed(2),
+        needDetour
+      });
+      
+      // 创建固定对象
+      console.log('Creating 3D objects...');
+      pointA = createPoint(A, 0x00ff00, 'A');
+      pointB = createPoint(B, 0xff0000, 'B');
+      pointC = createPoint(C, 0x0000ff, 'C');
+      sphere = createSphere(C, R, 0x6699ff, 0.3);
+      console.log('3D objects created');
+      
+      run();
+    });
+  </script>
+</body>
+</html>
