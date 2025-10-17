@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>合肥工业大学程艺小组演示——H题（最大流）</title>
+
+  <!-- KaTeX (可选) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root{
+      --gap: 16px;
+      --panel-radius: 12px;
+      --brand-1: #667eea;
+      --brand-2: #764ba2;
+      --text-1: #334155;
+      --muted-1: #e9ecef;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html, body { height: 100%; }
+    body{
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#333;
+      padding: 10px;
+      overflow: hidden;
+    }
+    .container{
+      height: calc(100vh - 20px);
+      background:#fff;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      display:flex;
+      flex-direction:column;
+      overflow: hidden;
+    }
+    header{
+      padding: 14px 16px;
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#fff;
+      text-align:center;
+      flex-shrink:0;
+    }
+    header h1{ font-size: clamp(18px, 2.2vw, 28px); margin-bottom:6px; text-shadow:2px 2px 4px rgba(0,0,0,.2) }
+    header h3{ font-size: clamp(12px, 1.1vw, 16px); font-weight:300; opacity:.95 }
+
+    /* 主体：左右布局（左动画，右讲解），右侧略窄，自适应 */
+    .main{
+      flex:1;
+      display:grid;
+      grid-template-columns: minmax(520px, 2fr) minmax(320px, 1fr);
+      gap: var(--gap);
+      padding: var(--gap);
+      overflow: hidden;
+    }
+    @media (max-width: 1024px){
+      .main{ grid-template-columns: 1fr; }
+    }
+
+    /* 左侧动画舞台：固定位置，所有动画同一位置的不同图层显隐 */
+    .stage{
+      border: 3px solid #e0e0e0;
+      border-radius: var(--panel-radius);
+      background:#fafafa;
+      position: relative;
+      overflow: hidden;
+      min-height: clamp(440px, 60vh, 820px);
+    }
+    .stage .wrap{ position:relative; width:100%; height:100%; }
+    svg{ width:100%; height:100%; display:block; }
+
+    /* 右侧讲解栏（略窄） */
+    .info{
+      background:#f8f9fa;
+      border-radius: var(--panel-radius);
+      border: 2px solid var(--muted-1);
+      padding: clamp(12px, 1.8vw, 18px);
+      overflow: auto;
+      min-height: 240px;
+    }
+    .info h2{ color: var(--brand-1); margin-bottom: 10px; font-size: clamp(16px, 1.6vw, 22px) }
+    .info p{ line-height: 1.8; font-size: clamp(13px, 1.1vw, 16px); margin-bottom: 8px }
+    .info code{ background:#eef2ff; padding:2px 6px; border-radius:4px; color:#7c3aed }
+    .problem-box{
+      border: 2px solid var(--brand-1);
+      border-radius: 10px;
+      background: #fff;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: clamp(12px, 1vw, 15px);
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .controls{
+      padding: 10px 14px;
+      background:#f8f9fa;
+      display:flex; justify-content:center; gap: 14px;
+      flex-shrink:0;
+    }
+    .btn{
+      background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+      color:#fff; border:none;
+      padding: 10px 28px;
+      font-size: clamp(13px,1.1vw,16px);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all .22s ease;
+      box-shadow: 0 4px 14px rgba(102,126,234,.4);
+      font-weight: 600;
+    }
+    .btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 6px 18px rgba(102,126,234,.55); }
+    .btn:disabled{ background:#cbd5e1; cursor:not-allowed; box-shadow:none; opacity:.85; }
+    .btn.prev{ background: linear-gradient(135deg, #718096 0%, #4a5568 100%) }
+
+    /* 网络流图样式 */
+    .node{ transition: all .25s ease }
+    .node circle{ stroke-width: 3 }
+    .node.source circle{ fill: #10b981; stroke: #059669 }
+    .node.sink circle{ fill: #ef4444; stroke: #dc2626 }
+    .node.intermediate circle{ fill: #3b82f6; stroke: #2563eb }
+    .node.highlighted circle{ stroke:#fbbf24; stroke-width:5; filter: drop-shadow(0 0 8px #fbbf24) }
+    .node.pulsing circle{ animation: pulse 1.5s ease-in-out infinite }
+    @keyframes pulse{ 0%,100%{ stroke-width:5; filter: drop-shadow(0 0 8px #fbbf24) } 50%{ stroke-width:7; filter: drop-shadow(0 0 14px #fbbf24) } }
+    .node text{ fill: #fff; font-size: 16px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; pointer-events:none }
+    .node .level-label{ fill: #667eea; font-size: 13px; font-weight: 800 }
+
+    .edge{ transition: all .25s ease; stroke: #94a3b8; stroke-width:3; fill:none }
+    .edge.reverse{ stroke: #cbd5e1; stroke-width:2; stroke-dasharray: 5,5 }
+    .edge.highlighted{ stroke:#f59e0b; stroke-width:5; filter: drop-shadow(0 0 4px #f59e0b) }
+    .edge.blocked{ stroke:#ef4444; stroke-width:4 }
+    
+    .edge-label{ 
+      font-size: 13px; 
+      font-weight: 700; 
+      fill:#1e293b; 
+      text-anchor: middle; 
+      dominant-baseline: middle;
+      pointer-events:none;
+    }
+    .edge-label.bottleneck{ fill:#dc2626; font-size: 15px; font-weight: 900 }
+
+    /* 箭头标记 */
+    marker path{ fill: #94a3b8 }
+    marker.highlighted path{ fill: #f59e0b }
+    marker.reverse path{ fill: #cbd5e1 }
+
+    /* 流量计数器 */
+    .flow-counter{
+      background:#fff; 
+      border:3px solid var(--brand-1); 
+      border-radius:10px; 
+      padding: 12px 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+      display:inline-flex; 
+      flex-direction: column; 
+      gap:6px;
+      align-items: center;
+    }
+    .flow-counter .label{ font-weight: 800; color: var(--brand-1); font-size: 14px }
+    .flow-counter .value{ font-size: 28px; font-weight: 900; color: #10b981 }
+
+    /* 代码显示 */
+    .code-wrap{ position:absolute; inset: 0; padding: 12px; }
+    .code-box{
+      width:100%; height:100%; background:#0b1020; color:#cbd5e1; border-radius: 10px; overflow:auto;
+      padding: 18px; font-family: Consolas, Monaco, "Courier New", monospace; line-height:1.6; white-space:pre; font-size: 13px;
+    }
+    .kw{ color:#c678dd } .ty{ color:#e5c07b } .fn{ color:#61afef } .num{ color:#d19a66 } .cm{ color:#636e7b; font-style:italic }
+
+    /* 入场动画 */
+    .fade-in{ animation: fadeIn .45s ease-out }
+    @keyframes fadeIn{ from{ opacity:0; transform: translateY(8px) } to{ opacity:1; transform:none } }
+
+    /* 阻塞标记 */
+    .block-mark{ fill:#ef4444; font-size: 24px; font-weight: 900 }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>合肥工业大学程艺小组演示——H题（电能输送/最大流）</h1>
+      <h3>组员: 李昊 周骏浩 叶豪杰 姚睿</h3>
+    </header>
+
+    <div class="main">
+      <!-- 左：动画舞台（所有动画同一位置，按图层显示/隐藏） -->
+      <div class="stage" id="stage">
+        <div class="wrap">
+          <svg id="canvas" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
+            <!-- 定义箭头标记 -->
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" />
+              </marker>
+              <marker id="arrow-highlighted" class="highlighted" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" />
+              </marker>
+              <marker id="arrow-reverse" class="reverse" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" />
+              </marker>
+            </defs>
+            <!-- 所有图层 -->
+            <g id="layer-network"></g>
+            <g id="layer-flow-counter"></g>
+            <g id="layer-code"></g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 右：讲解 -->
+      <div class="info">
+        <div id="info-content"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn prev" id="btn-prev" disabled>上一步</button>
+      <button class="btn" id="btn-next">下一步</button>
+    </div>
+  </div>
+
+  <script>
+    // ==================== 全局状态 ====================
+    let scene = 0;
+    const lastScene = 8;
+
+    // 示例数据：N=3, M=2, 边: 1-2(2), 2-3(1)
+    const N = 3;
+    const S = 1, T = 3; // 源点和汇点
+    const edges = [
+      { u: 1, v: 2, cap: 2 },
+      { u: 2, v: 3, cap: 1 }
+    ];
+
+    // 节点位置（手动布局，形成一条线）
+    const nodePos = {
+      1: { x: 250, y: 350 },
+      2: { x: 600, y: 350 },
+      3: { x: 950, y: 350 }
+    };
+
+    // 邻接表表示（用于Dinic算法模拟）
+    let adj = [];
+    let level = [];
+    let totalFlow = 0;
+
+    // DOM 引用
+    const svg = document.getElementById('canvas');
+    const layerNetwork = document.getElementById('layer-network');
+    const layerFlowCounter = document.getElementById('layer-flow-counter');
+    const layerCode = document.getElementById('layer-code');
+    const infoBox = document.getElementById('info-content');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+
+    // KaTeX 准备
+    let katexReady = false;
+    function waitKatex(){
+      return new Promise(res=>{
+        if (window.renderMathInElement){ katexReady = true; res(); }
+        else setTimeout(()=>waitKatex().then(res), 100);
+      });
+    }
+
+    // ==================== 工具函数 ====================
+    function setInfo(html){
+      infoBox.innerHTML = html;
+      if (katexReady && window.renderMathInElement){
+        renderMathInElement(infoBox, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function el(tag, attrs={}){ 
+      const e = document.createElementNS('http://www.w3.org/2000/svg', tag); 
+      for (const k in attrs) e.setAttribute(k, attrs[k]); 
+      return e; 
+    }
+
+    function show(g, on=true){ g.style.display = on ? 'block' : 'none'; }
+    function cls(g){ while (g.firstChild) g.removeChild(g.firstChild); }
+    function hideAll(){ [layerNetwork, layerFlowCounter, layerCode].forEach(g=>show(g,false)); }
+
+    // ==================== 图的构建和初始化 ====================
+    function initGraph(){
+      adj = Array.from({length: N+1}, ()=>[]);
+      level = Array(N+1).fill(-1);
+      totalFlow = 0;
+      
+      // 为每条无向边添加两条有向边
+      edges.forEach(e => {
+        adj[e.u].push({ to: e.v, cap: e.cap, flow: 0, rev: adj[e.v].length });
+        adj[e.v].push({ to: e.u, cap: e.cap, flow: 0, rev: adj[e.u].length - 1 });
+      });
+    }
+
+    // ==================== 绘图函数 ====================
+    function drawNetwork(options = {}){
+      const {
+        showReverse = false,
+        highlightPath = [],
+        highlightNodes = [],
+        showLevels = false,
+        showBottleneck = null,
+        showBlockedEdge = null
+      } = options;
+
+      cls(layerNetwork);
+
+      // 绘制边（正向和反向）
+      for(let u = 1; u <= N; u++){
+        adj[u].forEach((edge, idx) => {
+          const v = edge.to;
+          if(u > v) return; // 只绘制一次（u<v）
+          
+          const p1 = nodePos[u], p2 = nodePos[v];
+          const isHighlight = highlightPath.some(p => (p[0]===u && p[1]===v) || (p[0]===v && p[1]===u));
+          const isBlocked = showBlockedEdge && showBlockedEdge[0]===u && showBlockedEdge[1]===v;
+
+          // 正向边 u->v
+          const edgeForward = adj[u].find(e => e.to === v);
+          const line1 = el('path', {
+            d: `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`,
+            class: `edge ${isHighlight ? 'highlighted' : ''} ${isBlocked ? 'blocked' : ''}`,
+            'marker-end': isHighlight ? 'url(#arrow-highlighted)' : 'url(#arrow)',
+            'data-from': u,
+            'data-to': v
+          });
+          layerNetwork.appendChild(line1);
+
+          // 边标签：flow / capacity (正向)
+          const midX = (p1.x + p2.x) / 2;
+          const midY = (p1.y + p2.y) / 2 - 18;
+          const labelText = `${edgeForward.flow} / ${edgeForward.cap}`;
+          const label1 = el('text', { x: midX, y: midY, class: 'edge-label' });
+          if(showBottleneck && showBottleneck[0]===u && showBottleneck[1]===v){
+            label1.classList.add('bottleneck');
+          }
+          label1.textContent = labelText;
+          layerNetwork.appendChild(label1);
+
+          // 反向边 v->u （如果显示）
+          if(showReverse){
+            const edgeReverse = adj[v].find(e => e.to === u);
+            const line2 = el('path', {
+              d: `M ${p2.x} ${p2.y} Q ${(p1.x+p2.x)/2} ${(p1.y+p2.y)/2 + 40} ${p1.x} ${p1.y}`,
+              class: 'edge reverse',
+              'marker-end': 'url(#arrow-reverse)',
+              'data-from': v,
+              'data-to': u
+            });
+            layerNetwork.appendChild(line2);
+
+            const label2 = el('text', { x: (p1.x+p2.x)/2, y: (p1.y+p2.y)/2 + 50, class: 'edge-label' });
+            label2.textContent = `${edgeReverse.flow} / ${edgeReverse.cap}`;
+            label2.style.fontSize = '11px';
+            label2.style.fill = '#64748b';
+            layerNetwork.appendChild(label2);
+          }
+        });
+      }
+
+      // 绘制节点
+      for(let i = 1; i <= N; i++){
+        const p = nodePos[i];
+        const g = el('g', { class: `node ${i===S?'source':i===T?'sink':'intermediate'}`, 'data-id': i });
+        if(highlightNodes.includes(i)) g.classList.add('highlighted', 'pulsing');
+
+        const cir = el('circle', { cx: p.x, cy: p.y, r: 30 });
+        const tx = el('text', { x: p.x, y: p.y }); 
+        tx.textContent = i===S ? 'S(1)' : i===T ? 'T(3)' : String(i);
+        
+        g.appendChild(cir); 
+        g.appendChild(tx);
+
+        // 层级标签
+        if(showLevels && level[i] >= 0){
+          const lvlTx = el('text', { x: p.x, y: p.y - 50, class: 'level-label' });
+          lvlTx.textContent = `level=${level[i]}`;
+          g.appendChild(lvlTx);
+        }
+
+        layerNetwork.appendChild(g);
+      }
+    }
+
+    function drawFlowCounter(flow){
+      cls(layerFlowCounter);
+      const fo = el('foreignObject', { x: 50, y: 50, width: 180, height: 100 });
+      const div = document.createElement('div'); 
+      div.className = 'flow-counter fade-in';
+      const lbl = document.createElement('div'); 
+      lbl.className = 'label'; 
+      lbl.textContent = '总流量';
+      const val = document.createElement('div'); 
+      val.className = 'value'; 
+      val.textContent = String(flow);
+      div.appendChild(lbl); 
+      div.appendChild(val); 
+      fo.appendChild(div); 
+      layerFlowCounter.appendChild(fo);
+    }
+
+    function drawCode(){
+      cls(layerCode);
+      const fo = el('foreignObject', { x: 20, y: 20, width: 1160, height: 660 });
+      const wrap = document.createElement('div'); wrap.className = 'code-wrap fade-in';
+      const pre = document.createElement('pre'); pre.className = 'code-box';
+      pre.innerHTML =
+`<span class="cm">// Dinic 算法 C++ 实现</span>
+<span class="kw">#include</span> <span class="ty">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="ty">&lt;vector&gt;</span>
+<span class="kw">#include</span> <span class="ty">&lt;queue&gt;</span>
+
+<span class="kw">const</span> <span class="ty">long long</span> INF = <span class="num">1e18</span>;
+
+<span class="kw">struct</span> <span class="ty">Edge</span> {
+    <span class="ty">int</span> to;
+    <span class="ty">long long</span> capacity;
+    <span class="ty">int</span> rev;
+};
+
+<span class="ty">std::vector</span>&lt;<span class="ty">std::vector</span>&lt;<span class="ty">Edge</span>&gt;&gt; adj;
+<span class="ty">std::vector</span>&lt;<span class="ty">int</span>&gt; level, iter;
+
+<span class="ty">void</span> <span class="fn">add_edge</span>(<span class="ty">int</span> u, <span class="ty">int</span> v, <span class="ty">long long</span> cap) {
+    adj[u].push_back({v, cap, (<span class="ty">int</span>)adj[v].size()});
+    adj[v].push_back({u, cap, (<span class="ty">int</span>)adj[u].size() - <span class="num">1</span>});
+}
+
+<span class="cm">// BFS 构建分层网络</span>
+<span class="ty">bool</span> <span class="fn">bfs</span>(<span class="ty">int</span> s, <span class="ty">int</span> t) {
+    level.assign(adj.size(), -<span class="num">1</span>);
+    <span class="ty">std::queue</span>&lt;<span class="ty">int</span>&gt; q;
+    level[s] = <span class="num">0</span>;
+    q.push(s);
+    <span class="kw">while</span> (!q.empty()) {
+        <span class="ty">int</span> v = q.front(); q.pop();
+        <span class="kw">for</span> (<span class="kw">const auto</span>& edge : adj[v]) {
+            <span class="kw">if</span> (edge.capacity > <span class="num">0</span> && level[edge.to] < <span class="num">0</span>) {
+                level[edge.to] = level[v] + <span class="num">1</span>;
+                q.push(edge.to);
+            }
+        }
+    }
+    <span class="kw">return</span> level[t] != -<span class="num">1</span>;
+}
+
+<span class="cm">// DFS 寻找增广路</span>
+<span class="ty">long long</span> <span class="fn">dfs</span>(<span class="ty">int</span> v, <span class="ty">int</span> t, <span class="ty">long long</span> f) {
+    <span class="kw">if</span> (v == t) <span class="kw">return</span> f;
+    <span class="kw">for</span> (<span class="ty">int</span>& i = iter[v]; i < adj[v].size(); ++i) {
+        <span class="ty">Edge</span>& e = adj[v][i];
+        <span class="kw">if</span> (e.capacity > <span class="num">0</span> && level[v] < level[e.to]) {
+            <span class="ty">long long</span> d = dfs(e.to, t, <span class="ty">std::min</span>(f, e.capacity));
+            <span class="kw">if</span> (d > <span class="num">0</span>) {
+                e.capacity -= d;
+                adj[e.to][e.rev].capacity += d;
+                <span class="kw">return</span> d;
+            }
+        }
+    }
+    <span class="kw">return</span> <span class="num">0</span>;
+}
+
+<span class="cm">// 计算最大流</span>
+<span class="ty">long long</span> <span class="fn">max_flow</span>(<span class="ty">int</span> s, <span class="ty">int</span> t) {
+    <span class="ty">long long</span> flow = <span class="num">0</span>;
+    <span class="kw">while</span> (bfs(s, t)) {
+        iter.assign(adj.size(), <span class="num">0</span>);
+        <span class="ty">long long</span> f;
+        <span class="kw">while</span> ((f = dfs(s, t, INF)) > <span class="num">0</span>) {
+            flow += f;
+        }
+    }
+    <span class="kw">return</span> flow;
+}`;
+      wrap.appendChild(pre); 
+      fo.appendChild(wrap); 
+      layerCode.appendChild(fo);
+    }
+
+    // ==================== BFS 模拟（用于分层） ====================
+    function simulateBFS(){
+      level = Array(N+1).fill(-1);
+      const q = [S];
+      level[S] = 0;
+      let head = 0;
+      
+      while(head < q.length){
+        const u = q[head++];
+        adj[u].forEach(edge => {
+          if(edge.cap > edge.flow && level[edge.to] < 0){
+            level[edge.to] = level[u] + 1;
+            q.push(edge.to);
+          }
+        });
+      }
+      
+      return level[T] >= 0; // 返回T是否可达
+    }
+
+    // ==================== 场景控制 ====================
+    function run(){
+      hideAll();
+      btnPrev.disabled = scene===0;
+      btnNext.disabled = scene===lastScene;
+      btnNext.textContent = scene===lastScene ? '演示完成' : '下一步';
+
+      if(scene === 0){
+        // Scene 0: 问题建模
+        initGraph();
+        setInfo(`
+          <h2>场景0：问题建模</h2>
+          <div class="problem-box">H 电能输送
+
+随着全球环保意识的提升,西部地区发展了大量可再生能源发电站。为满足东部城市对清洁能源的需求,中国西电公司计划建设输电系统。
+
+<strong>输入样例：</strong>
+3 2
+1 2 2
+2 3 1
+
+<strong>输出样例：</strong>
+1
+
+<strong>数据范围：</strong> 2 ≤ N ≤ 10000
+          </div>
+          <p>我们将问题建模为<strong>最大流问题</strong>：</p>
+          <p>• <strong>节点：</strong>每个站点是一个节点</p>
+          <p>• <strong>边：</strong>每条输电线路是一条带容量的边</p>
+          <p>• <strong>源点S：</strong>发电站（节点1）</p>
+          <p>• <strong>汇点T：</strong>变电站（节点${N}）</p>
+          <p>左侧显示了初始网络图，边标签格式为 <code>流量 / 容量</code>。</p>
+        `);
+        drawNetwork();
+        show(layerNetwork, true);
+      }
+      else if(scene === 1){
+        // Scene 1: 残差网络的概念
+        setInfo(`
+          <h2>场景1：残差网络的概念</h2>
+          <p><strong>Dinic算法</strong>的核心是<strong>残差网络（Residual Graph）</strong>。</p>
+          <p>• <strong>正向边：</strong>实线表示，显示剩余可输送的容量</p>
+          <p>• <strong>反向边：</strong>虚线表示（灰色），容量表示可以"反悔"的流量</p>
+          <p>初始时，所有流量为0，反向边容量也为0。</p>
+          <p>当我们沿边 <code>u→v</code> 推送 <code>f</code> 单位流量后：</p>
+          <p>　• 正向边容量减少 <code>f</code></p>
+          <p>　• 反向边容量增加 <code>f</code></p>
+          <p>左侧现在显示了包含反向边的完整残差网络。</p>
+        `);
+        drawNetwork({ showReverse: true });
+        show(layerNetwork, true);
+      }
+      else if(scene === 2){
+        // Scene 2: 阶段一：BFS构建分层图
+        setInfo(`
+          <h2>场景2：阶段一 - BFS构建分层图</h2>
+          <p>Dinic算法分<strong>多个阶段</strong>执行。每个阶段首先使用<strong>BFS</strong>对残差网络进行分层。</p>
+          <p>• 从源点S开始，标记 <code>level[S] = 0</code></p>
+          <p>• 逐层扩展，每个可达节点的层级 = 父节点层级 + 1</p>
+          <p>• 找到到达汇点T的最短路径长度</p>
+          <p>左侧展示了BFS分层的结果：</p>
+          <p>　• 节点1(S): level=0</p>
+          <p>　• 节点2: level=1</p>
+          <p>　• 节点3(T): level=2</p>
+        `);
+        simulateBFS();
+        drawNetwork({ showLevels: true, highlightNodes: [S, T] });
+        show(layerNetwork, true);
+      }
+      else if(scene === 3){
+        // Scene 3: 阶段一：DFS寻找增广路
+        setInfo(`
+          <h2>场景3：阶段一 - DFS寻找增广路</h2>
+          <p>在分层图的基础上，使用<strong>DFS</strong>寻找从S到T的<strong>增广路</strong>。</p>
+          <p>DFS必须遵守<strong>分层规则</strong>：只能从 level=L 的节点走向 level=L+1 的节点。</p>
+          <p>搜索过程：</p>
+          <p>　1. 从节点1(level=0)出发</p>
+          <p>　2. 走向节点2(level=1)，边 1→2 剩余容量为2</p>
+          <p>　3. 从节点2走向节点3(level=2)，边 2→3 剩余容量为1</p>
+          <p>找到增广路：<code>1 → 2 → 3</code></p>
+        `);
+        drawNetwork({ 
+          showLevels: true, 
+          highlightPath: [[1,2], [2,3]],
+          highlightNodes: [1, 2, 3]
+        });
+        show(layerNetwork, true);
+      }
+      else if(scene === 4){
+        // Scene 4: 推送流量（增广）
+        setInfo(`
+          <h2>场景4：推送流量（增广）</h2>
+          <p>找到增广路 <code>1 → 2 → 3</code> 后，计算<strong>瓶颈容量</strong>。</p>
+          <p>瓶颈容量 = 路径上所有边剩余容量的<strong>最小值</strong>：</p>
+          <p>　• 边 1→2: 剩余容量 = 2</p>
+          <p>　• 边 2→3: 剩余容量 = 1  <span style="color:#dc2626;font-weight:900">← 瓶颈！</span></p>
+          <p>瓶颈容量 = min(2, 1) = <strong>1</strong></p>
+          <p>沿路径推送1单位流量：</p>
+          <p>　• 边 1→2: 流量 0→1</p>
+          <p>　• 边 2→3: 流量 0→1（已满）</p>
+          <p><strong>总流量更新：</strong> 0 → 1</p>
+        `);
+        // 更新流量
+        adj[1].find(e => e.to === 2).flow = 1;
+        adj[2].find(e => e.to === 3).flow = 1;
+        totalFlow = 1;
+        
+        drawNetwork({ 
+          highlightPath: [[1,2], [2,3]],
+          showBottleneck: [2, 3]
+        });
+        drawFlowCounter(totalFlow);
+        show(layerNetwork, true);
+        show(layerFlowCounter, true);
+      }
+      else if(scene === 5){
+        // Scene 5: 更新残差网络
+        setInfo(`
+          <h2>场景5：更新残差网络</h2>
+          <p>推送流量后，必须<strong>更新残差网络</strong>：</p>
+          <p><strong>正向边容量减少：</strong></p>
+          <p>　• 边 1→2: 剩余 2-1 = 1</p>
+          <p>　• 边 2→3: 剩余 1-1 = 0  <span style="color:#dc2626">（已满，不可再用）</span></p>
+          <p><strong>反向边容量增加：</strong></p>
+          <p>　• 边 2→1: 容量 2+1 = 3</p>
+          <p>　• 边 3→2: 容量 1+1 = 2</p>
+          <p>反向边允许算法"反悔"，将流量重新分配到其他路径。</p>
+          <p>左侧显示了更新后的残差网络（包含虚线反向边）。</p>
+        `);
+        // 更新残差容量
+        adj[1].find(e => e.to === 2).cap = 1;
+        adj[2].find(e => e.to === 3).cap = 0;
+        adj[2].find(e => e.to === 1).cap = 3;
+        adj[3].find(e => e.to === 2).cap = 2;
+        
+        drawNetwork({ showReverse: true });
+        drawFlowCounter(totalFlow);
+        show(layerNetwork, true);
+        show(layerFlowCounter, true);
+      }
+      else if(scene === 6){
+        // Scene 6: 结束当前阶段
+        setInfo(`
+          <h2>场景6：当前阶段结束</h2>
+          <p>在当前分层图中，继续用<strong>DFS</strong>寻找新的增广路。</p>
+          <p>从S(1)出发，到达节点2后：</p>
+          <p>　• 边 2→3 的剩余容量为 <strong>0</strong></p>
+          <p>　• 无法继续前进到汇点T(3)</p>
+          <p><strong>✗</strong> 当前分层图上没有更多增广路</p>
+          <p>阶段一结束。需要重新BFS分层，开始新阶段。</p>
+        `);
+        drawNetwork({ 
+          showLevels: true,
+          showBlockedEdge: [2, 3],
+          highlightNodes: [2]
+        });
+        
+        // 在边2→3旁边添加阻塞标记
+        const p2 = nodePos[2], p3 = nodePos[3];
+        const blockMark = el('text', { 
+          x: (p2.x + p3.x) / 2 + 30, 
+          y: (p2.y + p3.y) / 2, 
+          class: 'block-mark' 
+        });
+        blockMark.textContent = '✗';
+        layerNetwork.appendChild(blockMark);
+        
+        drawFlowCounter(totalFlow);
+        show(layerNetwork, true);
+        show(layerFlowCounter, true);
+      }
+      else if(scene === 7){
+        // Scene 7: 新阶段与算法终止
+        setInfo(`
+          <h2>场景7：新阶段与算法终止</h2>
+          <p>开始<strong>新阶段</strong>，再次对残差网络执行BFS分层。</p>
+          <p>从源点S(1)开始BFS：</p>
+          <p>　• 可以到达节点2</p>
+          <p>　• 但边 2→3 容量为0，<strong>无法到达汇点T(3)</strong></p>
+          <p><strong>BFS结果：</strong>汇点T不可达！</p>
+          <p>这意味着残差网络中<strong>S和T不再连通</strong>，没有更多增广路可以找到。</p>
+          <p><strong>算法终止。</strong></p>
+        `);
+        // 尝试BFS，但T不可达
+        level = Array(N+1).fill(-1);
+        level[S] = 0;
+        level[2] = 1;
+        // level[T] 保持 -1（不可达）
+        
+        drawNetwork({ showLevels: true, highlightNodes: [1, 2] });
+        drawFlowCounter(totalFlow);
+        show(layerNetwork, true);
+        show(layerFlowCounter, true);
+      }
+      else if(scene === 8){
+        // Scene 8: 最终结果与代码
+        setInfo(`
+          <h2>场景8：最终结果</h2>
+          <p><strong>算法结束！</strong></p>
+          <p>从发电站S(1)到变电站T(3)能输送的<strong>最大电量</strong>为：<strong style="color:#10b981;font-size:20px">1</strong></p>
+          <p>实际流过的路径：<code>1 → 2 → 3</code></p>
+          <p>　• 边 1→2: 流量 1 / 容量 2</p>
+          <p>　• 边 2→3: 流量 1 / 容量 1（已满）</p>
+          <p>右侧展示了完整的<strong>Dinic算法C++实现</strong>，包括：</p>
+          <p>　• <code>add_edge</code>: 建图</p>
+          <p>　• <code>bfs</code>: 构建分层网络</p>
+          <p>　• <code>dfs</code>: 寻找增广路</p>
+          <p>　• <code>max_flow</code>: 主算法</p>
+        `);
+        // 恢复最终状态
+        adj[1].find(e => e.to === 2).flow = 1;
+        adj[2].find(e => e.to === 3).flow = 1;
+        
+        drawNetwork({ 
+          highlightPath: [[1,2], [2,3]]
+        });
+        drawFlowCounter(totalFlow);
+        drawCode();
+        
+        show(layerNetwork, true);
+        show(layerFlowCounter, true);
+        show(layerCode, true);
+      }
+    }
+
+    // ==================== 事件监听 ====================
+    btnPrev.addEventListener('click', ()=>{ 
+      if(scene > 0){ 
+        scene--; 
+        if(scene < 4) initGraph(); // 重置图状态
+        run(); 
+      } 
+    });
+    
+    btnNext.addEventListener('click', ()=>{ 
+      if(scene < lastScene){ 
+        scene++; 
+        run(); 
+      } 
+    });
+
+    // ==================== 初始化 ====================
+    waitKatex().then(()=>{
+      initGraph();
+      run();
+    });
+
+    // 窗口自适应
+    let resizeTimer = null;
+    window.addEventListener('resize', ()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(()=> run(), 60);
+    });
+  </script>
+</body>
+</html>
