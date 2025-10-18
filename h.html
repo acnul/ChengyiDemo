@@ -228,19 +228,31 @@
     let scene = 0;
     const lastScene = 8;
 
-    // 示例数据：N=3, M=2, 边: 1-2(2), 2-3(1)
-    const N = 3;
-    const S = 1, T = 3; // 源点和汇点
+    // 示例数据：N=7, M=10, 更复杂的多层网络
+    const N = 7;
+    const S = 1, T = 7; // 源点和汇点
     const edges = [
-      { u: 1, v: 2, cap: 2 },
-      { u: 2, v: 3, cap: 1 }
+      { u: 1, v: 2, cap: 4 },
+      { u: 1, v: 3, cap: 3 },
+      { u: 2, v: 3, cap: 2 },
+      { u: 2, v: 4, cap: 3 },
+      { u: 3, v: 5, cap: 4 },
+      { u: 4, v: 5, cap: 2 },
+      { u: 4, v: 6, cap: 3 },
+      { u: 5, v: 6, cap: 3 },
+      { u: 5, v: 7, cap: 2 },
+      { u: 6, v: 7, cap: 5 }
     ];
 
-    // 节点位置（手动布局，形成一条线）
+    // 节点位置（手动布局，形成多层网络）
     const nodePos = {
-      1: { x: 250, y: 350 },
-      2: { x: 600, y: 350 },
-      3: { x: 950, y: 350 }
+      1: { x: 100, y: 350 },    // 源点
+      2: { x: 350, y: 230 },    // 第二层上
+      3: { x: 350, y: 470 },    // 第二层下
+      4: { x: 600, y: 200 },    // 第三层上
+      5: { x: 600, y: 380 },    // 第三层中
+      6: { x: 850, y: 290 },    // 第四层
+      7: { x: 1100, y: 350 }    // 汇点
     };
 
     // 邻接表表示（用于Dinic算法模拟）
@@ -523,15 +535,33 @@
           <h2>场景0：问题建模</h2>
           <div class="problem-box">H 电能输送
 
-随着全球环保意识的提升,西部地区发展了大量可再生能源发电站。为满足东部城市对清洁能源的需求,中国西电公司计划建设输电系统。
+随着全球环保意识的提升，西部地区发展了大量可再生能源发电站，如风电、
+光伏等。而东部地区的城市需求量也在不断增长。为了满足东部城市对清洁能源
+的需求，中国西电公司计划建设一套输电系统，从西部的可再生能源发电站将电
+力输送到东部城市。该系统包括发电站、输电站和变电站等站点和一套输电线路，
+用于将电力从一个地方输送到另一个地方。每个站点都被编号：发电站的编号为
+1，变电站的编号为N，中间的输电站的编号从2到N-1。沿途的每段输电线路连
+接一对输电站，每条输电线路可以向任意方向输送有限数量的电力。 
+中国西电公司聘请你作为输电系统规划师，帮助设计该输电系统。你需要根
+据地图和输电线路容量，计算该输电系统最多可以输送多少电力。 
+输入说明： 
+第一行包含两个个整数 ,N M，其中N表示发电站、输电站和变电站等站点数量之和，M表示站点间的输电线路数量。2 ≤ N≤ 10000。接下来的M行描述了输电线路的规格：对于每条输电线路，三个数字描述连接它的一对站点以及其输电容量1到 10^8 的整数。保证输送的电量不会是负数。
 
 <strong>输入样例：</strong>
-3 2
-1 2 2
-2 3 1
+7 10
+1 2 4
+1 3 3
+2 3 2
+2 4 3
+3 5 4
+4 5 2
+4 6 3
+5 6 3
+5 7 2
+6 7 5
 
 <strong>输出样例：</strong>
-1
+7
 
 <strong>数据范围：</strong> 2 ≤ N ≤ 10000
           </div>
@@ -541,7 +571,7 @@
           <p>• <strong>源点S：</strong>发电站（节点1）</p>
           <p>• <strong>汇点T：</strong>变电站（节点${N}）</p>
           <p>左侧显示了初始网络图，边标签格式为 <code>流量 / 容量</code>。</p>
-        `);
+        `);;
         drawNetwork();
         show(layerNetwork, true);
       }
@@ -571,8 +601,10 @@
           <p>• 找到到达汇点T的最短路径长度</p>
           <p>左侧展示了BFS分层的结果：</p>
           <p>　• 节点1(S): level=0</p>
-          <p>　• 节点2: level=1</p>
-          <p>　• 节点3(T): level=2</p>
+          <p>　• 节点2,3: level=1</p>
+          <p>　• 节点4,5: level=2</p>
+          <p>　• 节点6: level=3</p>
+          <p>　• 节点7(T): level=4</p>
         `);
         simulateBFS();
         drawNetwork({ showLevels: true, highlightNodes: [S, T] });
@@ -584,16 +616,18 @@
           <h2>场景3：阶段一 - DFS寻找增广路</h2>
           <p>在分层图的基础上，使用<strong>DFS</strong>寻找从S到T的<strong>增广路</strong>。</p>
           <p>DFS必须遵守<strong>分层规则</strong>：只能从 level=L 的节点走向 level=L+1 的节点。</p>
-          <p>搜索过程：</p>
+          <p>搜索过程（可能的一条路径）：</p>
           <p>　1. 从节点1(level=0)出发</p>
-          <p>　2. 走向节点2(level=1)，边 1→2 剩余容量为2</p>
-          <p>　3. 从节点2走向节点3(level=2)，边 2→3 剩余容量为1</p>
-          <p>找到增广路：<code>1 → 2 → 3</code></p>
+          <p>　2. 走向节点2(level=1)，边 1→2 剩余容量为4</p>
+          <p>　3. 从节点2走向节点4(level=2)，边 2→4 剩余容量为3</p>
+          <p>　4. 从节点4走向节点6(level=3)，边 4→6 剩余容量为3</p>
+          <p>　5. 从节点6走向节点7(level=4)，边 6→7 剩余容量为5</p>
+          <p>找到增广路：<code>1 → 2 → 4 → 6 → 7</code></p>
         `);
         drawNetwork({ 
           showLevels: true, 
-          highlightPath: [[1,2], [2,3]],
-          highlightNodes: [1, 2, 3]
+          highlightPath: [[1,2], [2,4], [4,6], [6,7]],
+          highlightNodes: [1, 2, 4, 6, 7]
         });
         show(layerNetwork, true);
       }
@@ -601,24 +635,30 @@
         // Scene 4: 推送流量（增广）
         setInfo(`
           <h2>场景4：推送流量（增广）</h2>
-          <p>找到增广路 <code>1 → 2 → 3</code> 后，计算<strong>瓶颈容量</strong>。</p>
+          <p>找到增广路 <code>1 → 2 → 4 → 6 → 7</code> 后，计算<strong>瓶颈容量</strong>。</p>
           <p>瓶颈容量 = 路径上所有边剩余容量的<strong>最小值</strong>：</p>
-          <p>　• 边 1→2: 剩余容量 = 2</p>
-          <p>　• 边 2→3: 剩余容量 = 1  <span style="color:#dc2626;font-weight:900">← 瓶颈！</span></p>
-          <p>瓶颈容量 = min(2, 1) = <strong>1</strong></p>
-          <p>沿路径推送1单位流量：</p>
-          <p>　• 边 1→2: 流量 0→1</p>
-          <p>　• 边 2→3: 流量 0→1（已满）</p>
-          <p><strong>总流量更新：</strong> 0 → 1</p>
+          <p>　• 边 1→2: 剩余容量 = 4</p>
+          <p>　• 边 2→4: 剩余容量 = 3  <span style="color:#dc2626;font-weight:900">← 瓶颈！</span></p>
+          <p>　• 边 4→6: 剩余容量 = 3</p>
+          <p>　• 边 6→7: 剩余容量 = 5</p>
+          <p>瓶颈容量 = min(4, 3, 3, 5) = <strong>3</strong></p>
+          <p>沿路径推送3单位流量：</p>
+          <p>　• 边 1→2: 流量 0→3</p>
+          <p>　• 边 2→4: 流量 0→3（已满）</p>
+          <p>　• 边 4→6: 流量 0→3（已满）</p>
+          <p>　• 边 6→7: 流量 0→3</p>
+          <p><strong>总流量更新：</strong> 0 → 3</p>
         `);
         // 更新流量
-        adj[1].find(e => e.to === 2).flow = 1;
-        adj[2].find(e => e.to === 3).flow = 1;
-        totalFlow = 1;
+        adj[1].find(e => e.to === 2).flow = 3;
+        adj[2].find(e => e.to === 4).flow = 3;
+        adj[4].find(e => e.to === 6).flow = 3;
+        adj[6].find(e => e.to === 7).flow = 3;
+        totalFlow = 3;
         
         drawNetwork({ 
-          highlightPath: [[1,2], [2,3]],
-          showBottleneck: [2, 3]
+          highlightPath: [[1,2], [2,4], [4,6], [6,7]],
+          showBottleneck: [2, 4]
         });
         drawFlowCounter(totalFlow);
         show(layerNetwork, true);
@@ -630,19 +670,23 @@
           <h2>场景5：更新残差网络</h2>
           <p>推送流量后，必须<strong>更新残差网络</strong>：</p>
           <p><strong>正向边容量减少：</strong></p>
-          <p>　• 边 1→2: 剩余 2-1 = 1</p>
-          <p>　• 边 2→3: 剩余 1-1 = 0  <span style="color:#dc2626">（已满，不可再用）</span></p>
+          <p>　• 边 1→2: 剩余 4-3 = 1</p>
+          <p>　• 边 2→4: 剩余 3-3 = 0  <span style="color:#dc2626">（已满，不可再用）</span></p>
+          <p>　• 边 4→6: 剩余 3-3 = 0  <span style="color:#dc2626">（已满，不可再用）</span></p>
+          <p>　• 边 6→7: 剩余 5-3 = 2</p>
           <p><strong>反向边容量增加：</strong></p>
-          <p>　• 边 2→1: 容量 2+1 = 3</p>
-          <p>　• 边 3→2: 容量 1+1 = 2</p>
+          <p>　• 边 2→1: 容量增加3</p>
+          <p>　• 边 4→2: 容量增加3</p>
+          <p>　• 边 6→4: 容量增加3</p>
+          <p>　• 边 7→6: 容量增加3</p>
           <p>反向边允许算法"反悔"，将流量重新分配到其他路径。</p>
-          <p>左侧显示了更新后的残差网络（包含虚线反向边）。</p>
+          <p>左侧显示了更新后的残差网络（虚线为反向边）。</p>
         `);
         // 更新残差容量
         adj[1].find(e => e.to === 2).cap = 1;
-        adj[2].find(e => e.to === 3).cap = 0;
-        adj[2].find(e => e.to === 1).cap = 3;
-        adj[3].find(e => e.to === 2).cap = 2;
+        adj[2].find(e => e.to === 4).cap = 0;
+        adj[4].find(e => e.to === 6).cap = 0;
+        adj[6].find(e => e.to === 7).cap = 2;
         
         drawNetwork({ showReverse: true });
         drawFlowCounter(totalFlow);
@@ -650,32 +694,29 @@
         show(layerFlowCounter, true);
       }
       else if(scene === 6){
-        // Scene 6: 结束当前阶段
+        // Scene 6: 继续寻找增广路
         setInfo(`
-          <h2>场景6：当前阶段结束</h2>
+          <h2>场景6：继续寻找增广路</h2>
           <p>在当前分层图中，继续用<strong>DFS</strong>寻找新的增广路。</p>
-          <p>从S(1)出发，到达节点2后：</p>
-          <p>　• 边 2→3 的剩余容量为 <strong>0</strong></p>
-          <p>　• 无法继续前进到汇点T(3)</p>
-          <p><strong>✗</strong> 当前分层图上没有更多增广路</p>
-          <p>阶段一结束。需要重新BFS分层，开始新阶段。</p>
+          <p>尝试另一条路径：<code>1 → 3 → 5 → 6 → 7</code></p>
+          <p>　• 边 1→3: 剩余容量 = 3</p>
+          <p>　• 边 3→5: 剩余容量 = 4</p>
+          <p>　• 边 5→6: 剩余容量 = 3</p>
+          <p>　• 边 6→7: 剩余容量 = 2（受限）</p>
+          <p>瓶颈容量 = min(3, 4, 3, 2) = <strong>2</strong></p>
+          <p>继续推送2单位流量，总流量 → 5</p>
         `);
+        adj[1].find(e => e.to === 3).flow = 2;
+        adj[3].find(e => e.to === 5).flow = 2;
+        adj[5].find(e => e.to === 6).flow = 2;
+        adj[6].find(e => e.to === 7).flow = 5;
+        totalFlow = 5;
+        
         drawNetwork({ 
           showLevels: true,
-          showBlockedEdge: [2, 3],
-          highlightNodes: [2]
+          highlightPath: [[1,3], [3,5], [5,6], [6,7]],
+          highlightNodes: [1, 3, 5, 6, 7]
         });
-        
-        // 在边2→3旁边添加阻塞标记
-        const p2 = nodePos[2], p3 = nodePos[3];
-        const blockMark = el('text', { 
-          x: (p2.x + p3.x) / 2 + 30, 
-          y: (p2.y + p3.y) / 2, 
-          class: 'block-mark' 
-        });
-        blockMark.textContent = '✗';
-        layerNetwork.appendChild(blockMark);
-        
         drawFlowCounter(totalFlow);
         show(layerNetwork, true);
         show(layerFlowCounter, true);
@@ -683,22 +724,35 @@
       else if(scene === 7){
         // Scene 7: 新阶段与算法终止
         setInfo(`
-          <h2>场景7：新阶段与算法终止</h2>
-          <p>开始<strong>新阶段</strong>，再次对残差网络执行BFS分层。</p>
-          <p>从源点S(1)开始BFS：</p>
-          <p>　• 可以到达节点2</p>
-          <p>　• 但边 2→3 容量为0，<strong>无法到达汇点T(3)</strong></p>
-          <p><strong>BFS结果：</strong>汇点T不可达！</p>
-          <p>这意味着残差网络中<strong>S和T不再连通</strong>，没有更多增广路可以找到。</p>
-          <p><strong>算法终止。</strong></p>
+          <h2>场景7：算法结束</h2>
+          <p>继续寻找第三条路径：<code>1 → 3 → 5 → 7</code></p>
+          <p>　• 边 1→3: 剩余容量 = 1</p>
+          <p>　• 边 3→5: 剩余容量 = 2</p>
+          <p>　• 边 5→7: 剩余容量 = 2</p>
+          <p>瓶颈容量 = min(1, 2, 2) = <strong>1</strong></p>
+          <p>再推送1单位流量，总流量 → 6</p>
+          <p>继续第四条路径可再增加1单位流量，最终总流量 → <strong>7</strong></p>
         `);
-        // 尝试BFS，但T不可达
+        // 更新到接近最终状态
+        adj[1].find(e => e.to === 3).flow = 3;
+        adj[3].find(e => e.to === 5).flow = 3;
+        adj[5].find(e => e.to === 7).flow = 1;
+        totalFlow = 6;
+        // 在新阶段中继续流动
         level = Array(N+1).fill(-1);
-        level[S] = 0;
+        level[1] = 0;
         level[2] = 1;
-        // level[T] 保持 -1（不可达）
+        level[3] = 1;
+        level[4] = 2;
+        level[5] = 2;
+        level[6] = 3;
+        level[7] = 4;
         
-        drawNetwork({ showLevels: true, highlightNodes: [1, 2] });
+        drawNetwork({ 
+          showLevels: true, 
+          highlightPath: [[1,3], [3,5], [5,7]],
+          highlightNodes: [1, 3, 5, 7] 
+        });
         drawFlowCounter(totalFlow);
         show(layerNetwork, true);
         show(layerFlowCounter, true);
@@ -708,22 +762,37 @@
         setInfo(`
           <h2>场景8：最终结果</h2>
           <p><strong>算法结束！</strong></p>
-          <p>从发电站S(1)到变电站T(3)能输送的<strong>最大电量</strong>为：<strong style="color:#10b981;font-size:20px">1</strong></p>
-          <p>实际流过的路径：<code>1 → 2 → 3</code></p>
-          <p>　• 边 1→2: 流量 1 / 容量 2</p>
-          <p>　• 边 2→3: 流量 1 / 容量 1（已满）</p>
+          <p>从发电站S(1)到变电站T(7)能输送的<strong>最大电量</strong>为：<strong style="color:#10b981;font-size:20px">7</strong></p>
+          <p>实际流过的多条路径：</p>
+          <p>　• 路径1：<code>1 → 2 → 4 → 6 → 7</code>，流量 3</p>
+          <p>　• 路径2：<code>1 → 3 → 5 → 6 → 7</code>，流量 2</p>
+          <p>　• 路径3：<code>1 → 3 → 5 → 7</code>，流量 1</p>
+          <p>　• 路径4：<code>1 → 2 → 3 → 5 → 7</code>，流量 1（利用交叉边）</p>
+          <p>边的最终流量状态：</p>
+          <p>　• 边 1→2: 4/4（满）| 边 1→3: 3/3（满）</p>
+          <p>　• 边 2→3: 1/2  |  边 2→4: 3/3（满）</p>
+          <p>　• 边 3→5: 4/4（满）| 边 4→5: 0/2</p>
+          <p>　• 边 4→6: 3/3（满）| 边 5→6: 2/3</p>
+          <p>　• 边 5→7: 2/2（满）| 边 6→7: 5/5（满）</p>
           <p>右侧展示了完整的<strong>Dinic算法C++实现</strong>，包括：</p>
-          <p>　• <code>add_edge</code>: 建图</p>
-          <p>　• <code>bfs</code>: 构建分层网络</p>
-          <p>　• <code>dfs</code>: 寻找增广路</p>
-          <p>　• <code>max_flow</code>: 主算法</p>
+          <p>　• <code>add_edge</code>: 建图  |  <code>bfs</code>: 构建分层网络</p>
+          <p>　• <code>dfs</code>: 寻找增广路  |  <code>max_flow</code>: 主算法</p>
         `);
         // 恢复最终状态
-        adj[1].find(e => e.to === 2).flow = 1;
+        adj[1].find(e => e.to === 2).flow = 4;
+        adj[1].find(e => e.to === 3).flow = 3;
         adj[2].find(e => e.to === 3).flow = 1;
+        adj[2].find(e => e.to === 4).flow = 3;
+        adj[3].find(e => e.to === 5).flow = 4;
+        adj[4].find(e => e.to === 5).flow = 0;
+        adj[4].find(e => e.to === 6).flow = 3;
+        adj[5].find(e => e.to === 6).flow = 2;
+        adj[5].find(e => e.to === 7).flow = 2;
+        adj[6].find(e => e.to === 7).flow = 5;
+        totalFlow = 7;
         
         drawNetwork({ 
-          highlightPath: [[1,2], [2,3]]
+          highlightPath: [[1,2], [2,4], [4,6], [1,3], [3,5], [5,6], [5,7], [6,7]]
         });
         drawFlowCounter(totalFlow);
         drawCode();
@@ -738,7 +807,7 @@
     btnPrev.addEventListener('click', ()=>{ 
       if(scene > 0){ 
         scene--; 
-        if(scene < 4) initGraph(); // 重置图状态
+        if(scene < 5) initGraph(); // 重置图状态
         run(); 
       } 
     });
