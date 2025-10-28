@@ -12,16 +12,16 @@
   <script defer src="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
   
   <!-- Three.js -->
-  <script src="https://cdn.bootcdn.net/ajax/libs/three.js/0.160.0/build/three.min.js"></script>
+  <!-- Three.js from unpkg mirror -->
+  <script src="https://unpkg.zhimg.com/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.bootcdn.net/ajax/libs/three.js/0.160.0/build/three.module.js",
-        "three/addons/": "https://cdn.bootcdn.net/ajax/libs/three.js/0.160.0/examples/jsm/"
+        "three": "https://unpkg.zhimg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.zhimg.com/three@0.160.0/examples/jsm/"
       }
     }
   </script>
-
   <style>
     :root{
       --gap: 16px;
@@ -890,5 +890,6 @@ A点到B的最小长度，精确到小数点后2位。
   </script>
 </body>
 </html>
+
 
 
